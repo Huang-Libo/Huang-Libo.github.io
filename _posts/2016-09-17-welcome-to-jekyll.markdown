@@ -1,25 +1,11 @@
 ---
 layout: post
-title:  "Welcome to Jekyll!"
+title:  "放弃Ghost，拥抱Github Pages + Jekyll"
 date:   2016-09-17 01:28:15 +0800
-categories: jekyll update
+categories: Others
 ---
-You’ll find this post in your `_posts` directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways, but the most common way is to run `jekyll serve`, which launches a web server and auto-regenerates your site when a file is updated.
+	我近几年博客没写多少，博客系统倒是换得挺勤。从最早的各种基于LAMP的开源CMS，到后来的集成有Markdown编辑器的Ghost，没有一个的使用时间超过一年。Ghost是从今年年初开始用的，和老牌的CMS相比它更加简约，但它也有些不完善的地方一直让我用着不太舒服，比如不支持Markdown的表格语法，编辑器里的代码块预览很丑，等等，所以用了不到一年就放弃了。
+	Jekyll其实很早就接触过，业界也有很多人在用，可能是因为之前频繁地更换博客系统导致我不想折腾了，就一直没去弄。最近想着一直没有一个稳定的博客系统心里总会不踏实，就花了点时间部署了Git Pages + Jekyll，并把自己的域名指向了新的博客，这样心里的一块大石头总算落地了。希望2016最后的几个月能好好写几篇文章，既能帮助自己整理思路，又能轻松的和朋友们分享我的学习和生活。
+	最后，希望我的新博客的寿命能超过一年，最好是能用很多年，这样就能把折腾的时间节约出来多写写博客。
 
-To add new posts, simply add a file in the `_posts` directory that follows the convention `YYYY-MM-DD-name-of-post.ext` and includes the necessary front matter. Take a look at the source for this post to get an idea about how it works.
 
-Jekyll also offers powerful support for code snippets:
-
-{% highlight ruby %}
-def print_hi(name)
-  puts "Hi, #{name}"
-end
-print_hi('Tom')
-#=> prints 'Hi, Tom' to STDOUT.
-{% endhighlight %}
-
-Check out the [Jekyll docs][jekyll-docs] for more info on how to get the most out of Jekyll. File all bugs/feature requests at [Jekyll’s GitHub repo][jekyll-gh]. If you have questions, you can ask them on [Jekyll Talk][jekyll-talk].
-
-[jekyll-docs]: http://jekyllrb.com/docs/home
-[jekyll-gh]:   https://github.com/jekyll/jekyll
-[jekyll-talk]: https://talk.jekyllrb.com/
