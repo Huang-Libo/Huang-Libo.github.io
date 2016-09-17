@@ -1,15 +1,15 @@
 # Site settings
-title: 黄立波-iOS开发者
-header-img: img/home-bg.jpg
+title: Huang-Libo's Blog
+header-img: img/post-bg-04.jpg
 email: huanglibo.work@gmail.com
-copyright_name: Your/Project/Corporate Name
-description: "Write your site description here. It will be used as your sites meta description as well!"
+copyright_name: Huang-Libo 2016
+description: "黄立波，iOS开发者"
 baseurl: ""
-url: "http://yourdomain.com"
-twitter_username: SBootstrap
-github_username:  davidtmiller
-facebook_username:  StartBootstrap
-email_username:  your-email@yourdomain.com
+url: "http://huanglibo.com"
+twitter_username: huanglb
+github_username: Huang-Libo 
+facebook_username: 黄立波 
+email_username:  huanglibo.work@gmail.com
 
 # Google Analytics
 # To enable google analytics, uncomment below line with a valid Google Tracking ID
@@ -19,7 +19,7 @@ email_username:  your-email@yourdomain.com
 markdown: kramdown
 highlighter: rouge
 permalink: pretty
-paginate: 5
+paginate: 20
 exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
 
 gems: [jekyll-paginate, jekyll-feed]
