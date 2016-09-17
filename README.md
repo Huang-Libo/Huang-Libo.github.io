@@ -1,2 +1,2 @@
 #Huang-Libo.github.io
-My [blog](http://huanglibo.com)'s repository.
+Hi, I'm a iOS developer, this is my [blog](http://huanglibo.com)'s repository, welcome!
