@@ -1,2 +1,2 @@
 # Huang-Libo.github.io
-This is my blog's repository.
+This is [my blog](http://huanglibo.com)'s repository.
