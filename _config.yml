@@ -1,15 +1,15 @@
 # Site settings
 title: Huang-Libo's Blog
 header-img: img/post-bg-04.jpg
-email: huanglibo.work@gmail.com
-copyright_name: Huang-Libo 2016
+email: LiboHwang+IM@gmail.com
+copyright_name: Huang-Libo
 description: "黄立波，iOS开发者"
 baseurl: ""
 url: "http://huanglibo.com"
 twitter_username: huanglb
 github_username: Huang-Libo 
 facebook_username: 100007182639985 
-email_username:  huanglibo.work@gmail.com
+email_username:  LiboHwang+IM@gmail.com
 
 # Google Analytics
 # To enable google analytics, uncomment below line with a valid Google Tracking ID
