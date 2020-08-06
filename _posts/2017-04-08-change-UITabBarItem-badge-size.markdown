@@ -1,8 +1,6 @@
 ---
-layout: post
 title:  "改变 UITabBarItem 上 badge(小红点)的大小"
-date:   2017-04-08 15:02:15 +0800
-categories: iOS
+tags: iOS
 ---
 
 ## 小红点简介

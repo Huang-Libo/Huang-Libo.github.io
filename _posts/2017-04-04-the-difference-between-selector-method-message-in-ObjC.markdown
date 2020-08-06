@@ -1,8 +1,6 @@
 ---
-layout: post
 title:  "ObjC 中 selector, method, message 的区别"
-date:   2017-04-04 02:01:15 +0800
-categories: iOS
+tags: iOS
 ---
 
 有点晚了, 先占个坑待填.
