@@ -1,8 +1,8 @@
 # The Site Configuration
 
 # Import the theme
-# theme: jekyll-theme-chirpy
-remote_theme: cotes2020/chirpy-starter
+theme: jekyll-theme-chirpy
+# remote_theme: cotes2020/chirpy-starter
 
 # Only if your site type is GitHub Project sites and doesn't have a custom domain,
 # change below value to '/projectname'.

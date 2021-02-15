@@ -1,11 +1,14 @@
+# hidden files
+.*
+!.github
 
-# Created by https://www.toptal.com/developers/gitignore/api/jekyll
-# Edit at https://www.toptal.com/developers/gitignore?templates=jekyll
+# jekyll cache
+_site
+vendor
 
-### Jekyll ###
-_site/
-.sass-cache/
-.jekyll-cache/
-.jekyll-metadata
+# rubygem
+*.gem
 
-# End of https://www.toptal.com/developers/gitignore/api/jekyll
+# npm dependencies
+node_modules
+package-lock.json
