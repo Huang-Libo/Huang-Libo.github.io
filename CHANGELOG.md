@@ -4,6 +4,8 @@
 
 将主题由 [TeXt theme](https://github.com/kitian616/jekyll-TeXt-theme) 换成 [chirpy](https://github.com/cotes2020/jekyll-theme-chirpy) 。chirpy 支持随系统切换主题（普通/暗黑），且细节做的更好，比如 TOC 有自动换行，而 TeXt theme 就会因为截断而显示不全。
 
+并使用 RubyGems 来安装主题，详情请看：https://chirpy.cotes.info/posts/getting-started/ 。  
+
 ## 20200808
 
 由于 [TeXt theme](https://github.com/kitian616/jekyll-TeXt-theme) 设置文件 *_data/variables.yml* 中指定的 *font_awesome* 地址 https://use.fontawesome.com/releases/v5.0.13/css/all.css 被墙了，故需将 all.css 和相关字体添加到本地。更改详情请见[此提交](https://github.com/Huang-Libo/Huang-Libo.github.io/commit/5c578e002d4fc38b72ec8444bd6f48c36bc68714)。  
