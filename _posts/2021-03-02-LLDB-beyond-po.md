@@ -155,9 +155,9 @@ let cruise: Activity = Trip(
 
 ![-w506](/images/2021/lldb-p-2.jpg)
 
-可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**Dynamic type resolution**。
+可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**动态类型解析（Dynamic type resolution）**。
 
-而 `p cruise.name` 报错，是因为在 LLDB **生成代码时**(生成代码是第一步，还没到动态解析)，只能从源码知道 `cruise` 是遵守 `Activity` 的协议的类型，而 `Activity` 协议中并没有 `name` 成员，所以 LLDB 生成的代码编译时会报错。
+要注意的是，`p` 只对 **result** 做**动态类型解析**，所以上面的 `p cruise.name` 会报错。分析：在 LLDB **生成代码时**，只能从源码知道 `cruise` 是遵守 `Activity` 的协议的类型，而 `Activity` 协议中并没有 `name` 成员，所以 LLDB 生成的代码编译时就报错了，无法走到**动态类型解析**这一步。  
 
 想要通过 `p` 打印 `name`，就必须先将 `cruise` 强转为 `Trip` 类型：`p (cruise as! Trip).name`。
 
