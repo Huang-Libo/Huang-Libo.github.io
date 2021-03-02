@@ -70,7 +70,7 @@ expression -O -- cruise
 我们也可以创建自己的 *alias*：
 
 ```lldb
-command alias my_po express -O --
+command alias my_po expression -O --
 ```
 
 使用自己创建的 `my_po`：
