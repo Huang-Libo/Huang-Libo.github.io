@@ -1,5 +1,5 @@
 ---
-title: "LLDB: Beyond po"
+title: "LLDB Beyond po (一): po、p、v 命令"
 tags: LLDB
 ---
 
@@ -97,6 +97,17 @@ extension Trip: CustomDebugStringConvertible {
 
 更多信息请查看 `CustomDebugStringConvertible` 协议的相关文档。
 
+## 使用 help 查看 LLDB 命令的介绍
+
+在 `lldb` 内，可使用 `help` 命令查询其他命令的用法，如：
+
+```lldb
+help po
+help expression
+```
+
+![](/images/2021/lldb-help.jpg)
+
 # LLDB 常用命令二：p
 
 和 `po` 和类似的命令是 `p`：
@@ -132,7 +143,7 @@ expression cruise
 
 ## p 的原理
 
-![-w1549](/images/2021/lldb-p-1.jpg)
+![](/images/2021/lldb-p-1.jpg)
 
 `p` 的前半部分过程与 `po` 一样，生成获取对象的代码并获取对象。不一样的地方是，`p` 拿到 **result** 后，会对 **result** 做 **Dynamic type resolution（动态类型解析）**。我们来看一个例子，把之前的代码稍作改动：
 
@@ -153,7 +164,7 @@ let cruise: Activity = Trip(
 
 再输入 `p cruise` 和 `p cruise.name`：
 
-![-w506](/images/2021/lldb-p-2.jpg)
+![](/images/2021/lldb-p-2.jpg)
 
 可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**动态类型解析（Dynamic type resolution）**。
 
@@ -174,7 +185,7 @@ expression --raw -- cruise
 
 在上面的例子中，我们需要强制转换 `cruise` 的类型，才能打印 `name`。其实 LLDB 的 `v` 命令，可以更便捷地完成这项任务：
 
-![-w492](/images/2021/lldb-v-1.jpg)
+![](/images/2021/lldb-v-1.jpg)
 
 从输出我们可以看到，`v cruise` 的输出和 `p cruise` 类似。但是，`p cruise.name` 报错了，而 `v cruise.name` 能正常打印 name。
 
@@ -186,9 +197,9 @@ expression --raw -- cruise
 frame variable cruise
 ```
 
-## v 的原理：
+## v 的原理
 
-![-w1457](/images/2021/lldb-v-2.jpg)
+![](/images/2021/lldb-v-2.jpg)
 
 从上图可以看出，`v` 并不生成代码来编译和执行，而是先直接从内存中读取值，再进行 **Dynamic type resolution**。如果有 **subfields**，则循环这两步，直到拿到最终的值。  
 
@@ -198,7 +209,7 @@ frame variable cruise
 
 # po，p，v 的使用场景
 
-![-w1569](/images/2021/lldb-compare-po-p-v.jpg)
+![](/images/2021/lldb-compare-po-p-v.jpg)
 
 小结：  
 
@@ -207,18 +218,13 @@ frame variable cruise
 - `p` 可以对 **result** 做 **Dynamic type resolution**。
 - `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **Dynamic type resolution**，但不能用于调用方法、计算表达式等。
 
-# 使用 help 查看 LLDB 命令的介绍
-
-在 `lldb` 内，可使用 `help` 命令查询其他命令的用法，如：
-
-```bash
-help po
-help expression
-```
-
-![-w845](/images/2021/lldb-help.jpg)
-
 # Reference
 
+## WWDC 2019 / 429
+
 [https://developer.apple.com/videos/play/wwdc2019/429/](https://developer.apple.com/videos/play/wwdc2019/429/)  
-[https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)
+[https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf](https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf)  
+
+## 其他资料
+
+[https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)  
