@@ -7,7 +7,7 @@ tags: LLDB
 
 [WWDC 2019 / 429](https://developer.apple.com/videos/play/wwdc2019/429/) 介绍了 Xcode 11 中 `LLDB` 的常用技巧及其原理，本文做一个摘要和总结。  
 
-示例 project：[https://github.com/Bob-Playground/LLDB-Demo](https://github.com/Bob-Playground/LLDB-Demo)  
+示例 project：[https://github.com/Bob-Playground/Travel](https://github.com/Bob-Playground/Travel)  
 
 # LLDB 常用命令一：po
 
@@ -65,7 +65,16 @@ po 实际上是 `expression` 命令的一个 *alias*，`po cruise` 等效于：
 expression -O -- cruise
 ```
 
-参数说明：`-O` 是 `--object-description` 的简写。详细的参数说明可在 LLDB 内通过 `help expression` 查看。
+参数说明：`-O` 是 `--object-description` 的简写。详细的参数说明可在 LLDB 内通过 `help expression` 查看（在 Xcode Console 或 System Console 中都可以），如：
+
+```lldb
+help po
+help expression
+```
+
+![](/images/2021/lldb-help.jpg)
+
+## 创建自定义的 alias
 
 我们也可以创建自己的 *alias*：
 
@@ -95,18 +104,9 @@ extension Trip: CustomDebugStringConvertible {
 }
 ```
 
-更多信息请查看 `CustomDebugStringConvertible` 协议的相关文档。
+更多信息请查看 `CustomDebugStringConvertible` 协议的相关文档。  
 
-## 使用 help 查看 LLDB 命令的介绍
-
-在 `lldb` 内，可使用 `help` 命令查询其他命令的用法，如：
-
-```lldb
-help po
-help expression
-```
-
-![](/images/2021/lldb-help.jpg)
+对于 `Objective-C`，则可覆盖 `debugDescription` 方法或 `description` 属性来实现自定义输出。  
 
 # LLDB 常用命令二：p
 
@@ -114,7 +114,7 @@ help expression
 
 ```lldb
 (lldb) p cruise
-(LLDB_Demo.Trip) $R0 = {
+(Travel.Trip) $R0 = {
   name = "Mediterranean Cruise"
   destinations = 3 values {
     [0] = "Sorrento"
@@ -145,7 +145,7 @@ expression cruise
 
 ![](/images/2021/lldb-p-1.jpg)
 
-`p` 的前半部分过程与 `po` 一样，生成获取对象的代码并获取对象。不一样的地方是，`p` 拿到 **result** 后，会对 **result** 做 **Dynamic type resolution（动态类型解析）**。我们来看一个例子，把之前的代码稍作改动：
+`p` 的前半部分过程与 `po` 一样，生成获取对象的代码并获取对象。不一样的地方是，`p` 拿到 **result** 后，会对 **result** 做 **动态类型解析（Dynamic type resolution）**。我们来看一个例子，把之前的代码稍作改动：
 
 ```swift
 protocol Activity {}
@@ -166,13 +166,13 @@ let cruise: Activity = Trip(
 
 ![](/images/2021/lldb-p-2.jpg)
 
-可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**动态类型解析（Dynamic type resolution）**。
+可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**动态类型解析**。
 
 要注意的是，`p` 只对 **result** 做**动态类型解析**，所以上面的 `p cruise.name` 会报错。分析：在 LLDB **生成代码时**，只能从源码知道 `cruise` 是遵守 `Activity` 的协议的类型，而 `Activity` 协议中并没有 `name` 成员，所以 LLDB 生成的代码编译时就报错了，无法走到**动态类型解析**这一步。  
 
 想要通过 `p` 打印 `name`，就必须先将 `cruise` 强转为 `Trip` 类型：`p (cruise as! Trip).name`。
 
-在流程的最后，**result** 会传递给 **formatter subsystem** 处理，以输出可读性更强的内容。如果想看原始内容，可在 `expression` 命令后使用 `--raw` 参数：
+在流程的最后，**result** 会传递给 **Formatter Subsystem** 处理，以输出可读性更强的内容。如果想看原始内容，可在 `expression` 命令后使用 `--raw` 参数：
 
 ```lldb
 expression --raw -- cruise
@@ -201,9 +201,9 @@ frame variable cruise
 
 ![](/images/2021/lldb-v-2.jpg)
 
-从上图可以看出，`v` 并不生成代码来编译和执行，而是先直接从内存中读取值，再进行 **Dynamic type resolution**。如果有 **subfields**，则循环这两步，直到拿到最终的值。  
+从上图可以看出，`v` 并不生成代码来编译和执行，而是先直接从内存中读取值，再进行 **动态类型解析**。如果有 **subfields**，则循环这两步，直到拿到最终的值。  
 
-与 `p` 相同的是，**result** 会传递给 **formatter subsystem** 处理，以输出可读性更强的内容。  
+与 `p` 相同的是，**result** 会传递给 **Formatter Subsystem** 处理，以输出可读性更强的内容。  
 
 由于不需要编译和执行代码，`v` 的速度也比 `po` 或 `p` 快很多。但是，这也决定了 `v` 只能读取值，而**无法调用方法或计算表达式**。  
 
@@ -214,9 +214,9 @@ frame variable cruise
 小结：  
 
 - `po` 和 `p` 可使用语言的全部特性。LLDB 根据用户的输入，生成代码编译运行。可以进行调用方法、计算表达式等操作。
-- `po` 可以获得对象的 description，`p` 和 `v` 能使用 **Data formatter subsystem** 处理 **result**。
-- `p` 可以对 **result** 做 **Dynamic type resolution**。
-- `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **Dynamic type resolution**，但不能用于调用方法、计算表达式等。
+- `po` 可以获得对象的 description，`p` 和 `v` 能使用 **Data Formatter Subsystem** 处理 **result**。
+- `p` 可以对 **result** 做 **动态类型解析**。
+- `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **动态类型解析**，但不能用于调用方法、计算表达式等。
 
 # Reference
 
