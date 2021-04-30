@@ -49,6 +49,8 @@ tags: iOS timer NSTimer
 
 ![](/images/2021/NSTimer-circular-reference-1.png)
 
+由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致其 `dealloc` 方法不会执行，因此 `dealloc` 里 `timer` 的 `invalidate` 也就无法执行了。
+
 说明：如果 `repeats` 参数设为 `NO`, 执行完定时任务后，`timer` 会取消对 `target` 的强引用，因此不会形成循环引用。  
 
 **接下来讲讲常见的解决方法。**  
