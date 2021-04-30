@@ -87,7 +87,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 使用 `NSProxy` 做中间件执行消息转发。要点：  
 
 1.  把 `timer` 的 `target` 设置成 `proxy`；
-2.  `proxy` 弱引用 `viewController`，将 `timer` 发来的定时任务转发给 `viewController`。  
+2.  `proxy` 弱引用 `viewController`，并将 `timer` 发来的定时任务转发给 `viewController`。  
 
 关系图如下：
 
@@ -143,13 +143,13 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 
 在上述例子中，先通过 `proxyWithTarget:` 方法创建 `LBWeakProxy` 的实例 `proxy`，然后将 `timer` 的 `target` 设置为 `proxy`，在 `proxy` 内弱引用 `viewController`、并将消息转发给 `viewController`。   
 
-回到文章开头的案例：退出 `viewController` 页面时，由于 `timer` 没有强引用 `viewController`，所以 `viewController` 的 `dealloc` 方法会执行，所以 `dealloc` 中销毁 `timer` 的方法也就能正常执行了。  
+回到文章开头的案例：退出 `viewController` 页面时，由于 `timer` 没有强引用 `viewController`，所以 `viewController` 的 `dealloc` 方法会执行，`dealloc` 中销毁 `timer` 的方法也就能正常执行了。  
 
 这样，`viewController` 在释放时，`timer` 也释放了。
 
 ## 用 NSProxy 做消息转发比 NSObject 高效
 
-也有人使用 `NSObject` 子类做中间件执行消息转发，但实际上效率没有 `NSProxy` 高。因为 `NSObject` 要在执行方法查找，找不到相关方法后，才进入消息转发阶段。  
+也有人使用 `NSObject` 子类做中间件执行消息转发，但实际上效率没有 `NSProxy` 高。因为 `NSObject` 要先执行方法查找，找不到相关方法后，才进入消息转发阶段。  
 
 而 `NSProxy` 如同其名，天生就是做代理的，会直接进入到消息转发阶段。  
 
