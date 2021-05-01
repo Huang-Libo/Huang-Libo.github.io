@@ -3,6 +3,8 @@ title:  "警惕 NSTimer 引起的循环引用"
 tags: iOS timer NSTimer 
 ---
 
+> 示例 project：[https://github.com/BOB-Module/NSTimer-Utils](https://github.com/BOB-Module/NSTimer-Utils)
+
 # 典型案例：使用 Target-Action 模式添加 NSTimer
 
 先看看下述代码有什么问题：  
@@ -84,8 +86,6 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 
 # 方法四：使用 NSProxy 做中间件（推荐，有创意）
 
-> 示例 project：[https://github.com/BOB-Module/NSTimer-with-NSProxy](https://github.com/BOB-Module/NSTimer-with-NSProxy)
-
 使用 `NSProxy` 做中间件执行消息转发。要点：  
 
 1.  把 `timer` 的 `target` 设置成 `proxy`；
@@ -155,9 +155,80 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 
 而 `NSProxy` 如同其名，天生就是做代理的，会直接进入到消息转发阶段。  
 
+# 方法五：添加一个 NSTimer 的分类方法（iOS 10 以下适用）
+
+> 这个方案来自《Effective Objective-C 2.0》。
+
+如 [方法二](http://127.0.0.1:4000/posts/NSTimer-circular-reference/#方法二使用-ios-10-添加的新-api推荐) 所述，在 iOS 10 及以上的项目中，可使用 NSTimer 新增的 block 范式的方法。  
+
+在 iOS 10 之前，为了支持这种 block 范式 API，通常的做法是为 `NSTimer` 添加一个分类方法：
+
+`NSTimer+EOCBlocksSupport.h`
+
+```objc
+@interface NSTimer (EOCBlocksSupport)
+
++ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSTimer *timer))block;
+
+@end
+```
+
+`NSTimer+EOCBlocksSupport.m`
+
+```objc
+@implementation NSTimer (EOCBlocksSupport)
+
++ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSTimer * _Nonnull))block {
+    return [self scheduledTimerWithTimeInterval:interval target:self selector:@selector(eoc_blockInvoke:) userInfo:[block copy] repeats:YES];
+}
+
++ (void)eoc_blockInvoke:(NSTimer *)timer {
+    void (^block)(NSTimer *timer) = timer.userInfo;
+    if (block) {
+        block(timer);
+    }
+}
+
+@end
+```
+
+在 `viewController` 中调用上述分类方法示例（需要注意的是，传入的 block 不要强引用 viewController）：
+
+```objc
+@interface ViewController ()
+@property (nonatomic, strong) NSTimer *timer;
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    __weak typeof(self) weakSelf = self;
+    self.timer = [NSTimer eoc_scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        NSLog(@"%@, %@", strongSelf, timer);
+    }];
+}
+
+- (void)dealloc {
+    [self.timer invalidate];
+    self.timer = nil;
+    NSLog(@"%s", __func__);
+}
+
+@end
+```
+
+《Effective Objective-C 2.0》对上述代码的解读：  
+
+1. 这段代码将 `timer` 所应执行的任务封装成 `block`，在创建 `timer` 时，将 `block` 作为 `userInfo` 参数传进去。
+2. `userInfo` 可以用来存放不透明值（**opaque value**），只要计时器有效，就会一直保留着它。传入参数时要通过 `copy` 方法将 `block` 拷贝到“堆”上，否则等到稍后要执行它的时候，该 `block` 可能已经无效了。
+3. `timer` 现在的 `target` 是 `NSTimer` 类对象，这是个单例，因此计时器是否会保留它，其实都无所谓。此处依然有保留环，然而因为类对象（**class Object**）无需回收，所以不用担心。
+
 # 小结
 
-- `NSTimer` 很常用，但也有它的局限性，用的时候要多留意细节，提防内存泄漏。  
+- `NSTimer` 对象会保留其目标，直到 timer 本身失效为止，调用 invalidate 方法可令 timer 失效；另外，一次性的 timer 在触发完任务之后也会失效。
 - `dispatch_source` 定时器不受 Runloop 影响，比 `NSTimer` 更准时的。 在对时间精确度要求高的场景中，`NSTimer` 并不适用。  
 
 # 相关资料
