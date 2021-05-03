@@ -7,7 +7,7 @@ tags: iOS timer NSTimer
 
 # 典型案例：使用 Target-Action 模式添加 NSTimer
 
-先看看下述代码有什么问题：  
+先看看下面的代码有什么问题：  
 
 ```objc
 #import "ViewController.h"
@@ -45,15 +45,13 @@ tags: iOS timer NSTimer
 
 ## 原因分析
 
-> 计时器会保留其目标对象，等到自身“失效”时再释放此对象。调用 `invalidate` 方法可令计时器失效；执行完相关任务之后，一次性的计时器也会失效。开发者若将计时器设置成重复执行模式，那么必须自己调用 `invalidate` 方法，才能令其停止。[^1]
+> `timer` 会保留其目标对象，等到自身“失效”时再释放此对象。调用 `invalidate` 方法可令 `timer` 失效；执行完相关任务之后，一次性的 `timer` 也会失效。开发者若将 `timer` 设置成重复执行模式，那么必须自己调用 `invalidate` 方法，才能令其停止。[^1]
 
 在上述代码中，`viewController` 强引用了 `timer`，`timer` 又强引用了 `target` (即 `viewController`)，形成了循环引用：
 
 ![](/images/2021/NSTimer-circular-reference-1.png)
 
 由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致其 `dealloc` 方法不会执行，因此 `dealloc` 里 `timer` 的 `invalidate` 也就无法执行了。
-
-说明：如果 `repeats` 参数设为 `NO`, 执行完定时任务后，`timer` 会取消对 `target` 的强引用，因此不会形成循环引用。  
 
 **接下来讲讲常见的解决方法。**  
 
@@ -80,7 +78,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 
 使用 `dispatch_source` 定时器的案例，可参看 [MSWeakTimer](https://github.com/mindsnacks/MSWeakTimer)。  
 
-另外，由于 `NSTimer` 需要添加到 Runloop 中，当 Runloop 繁忙时，`timer` 的事件就不能得到及时执行，会出现不准时的问题。  
+另外，由于 `NSTimer` 需要添加到 Runloop 中，当 Runloop 繁忙时，`timer` 的事件就不能及时执行，会出现不准时的问题。  
 
 而 `dispatch_source` 不依赖 Runloop，所以比 `NSTimer` **更准时**。  
 
@@ -91,7 +89,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 1.  把 `timer` 的 `target` 设置成 `proxy`；
 2.  `proxy` 弱引用 `viewController`，并将 `timer` 发来的定时任务转发给 `viewController`。  
 
-关系图如下：
+关系图如下（虚线代表弱引用）：
 
 ![](/images/2021/NSTimer-circular-reference-2.png)
 
@@ -130,7 +128,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 @end
 ```
 
-然后在创建 `timer` 时，将 `timer` 的 `target` 设置为 `proxy`：  
+然后，在创建 `timer` 时，将 `timer` 的 `target` 设置为 `proxy`：  
 
 ```objc
 // 强引用链: self -> timer -> proxy , 而 proxy 弱引用 self, 不会形成循环引用
@@ -141,7 +139,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 
 ## 原理
 
-`NSProxy`：和 `NSObject` 类似，是基类。这里利用 `NSProxy` 的`methodSignatureForSelector:`方法、`forwardInvocation:` 方法做了消息转发。  
+`NSProxy` 简介：和 `NSObject` 类似，是基类。这里利用 `NSProxy` 的`methodSignatureForSelector:`方法、`forwardInvocation:` 方法做了消息转发。  
 
 在上述例子中，先通过 `proxyWithTarget:` 方法创建 `LBWeakProxy` 的实例 `proxy`，然后将 `timer` 的 `target` 设置为 `proxy`，在 `proxy` 内弱引用 `viewController`、并将消息转发给 `viewController`。   
 
@@ -168,7 +166,11 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 ```objc
 @interface NSTimer (EOCBlocksSupport)
 
-+ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSTimer *timer))block;
+/// Creates a timer and schedules it on the current run loop in the default mode.
++ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)timeInterval repeats:(BOOL)repeats block:(void (^)(NSTimer *timer))block;
+
+/// 可以稍后给 timer 指定 run loop mode
++ (NSTimer *)eoc_timerWithTimeInterval:(NSTimeInterval)timeInterval repeats:(BOOL)repeats block:(void (^)(NSTimer *timer))block;
 
 @end
 ```
@@ -178,8 +180,12 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 ```objc
 @implementation NSTimer (EOCBlocksSupport)
 
-+ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)interval repeats:(BOOL)repeats block:(void (^)(NSTimer * _Nonnull))block {
-    return [self scheduledTimerWithTimeInterval:interval target:self selector:@selector(eoc_blockInvoke:) userInfo:[block copy] repeats:YES];
++ (NSTimer *)eoc_scheduledTimerWithTimeInterval:(NSTimeInterval)timeInterval repeats:(BOOL)repeats block:(void (^)(NSTimer * _Nonnull))block {
+    return [self scheduledTimerWithTimeInterval:timeInterval target:self selector:@selector(eoc_blockInvoke:) userInfo:[block copy] repeats:YES];
+}
+
++ (NSTimer *)eoc_timerWithTimeInterval:(NSTimeInterval)timeInterval repeats:(BOOL)repeats block:(void (^)(NSTimer *timer))block {
+    return [self timerWithTimeInterval:timeInterval target:self selector:@selector(eoc_blockInvoke:) userInfo:[block copy] repeats:repeats];
 }
 
 + (void)eoc_blockInvoke:(NSTimer *)timer {
@@ -205,10 +211,21 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
     [super viewDidLoad];
     
     __weak typeof(self) weakSelf = self;
-    self.timer = [NSTimer eoc_scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+    
+    // 1. 使用 currentRunLoop 的 default mode
+    /*
+     self.timer = [NSTimer eoc_scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        NSLog(@"%@, %@", strongSelf, timer);
+     }];
+    */
+    
+    // 2. 可自行选择 mode
+    self.timer = [NSTimer eoc_timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         NSLog(@"%@, %@", strongSelf, timer);
     }];
+    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
 }
 
 - (void)dealloc {
@@ -223,8 +240,8 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 《Effective Objective-C 2.0》对上述代码的解读：  
 
 1. 这段代码将 `timer` 所应执行的任务封装成 `block`，在创建 `timer` 时，将 `block` 作为 `userInfo` 参数传进去。
-2. `userInfo` 可以用来存放不透明值（**opaque value**），只要计时器有效，就会一直保留着它。传入参数时要通过 `copy` 方法将 `block` 拷贝到“堆”上，否则等到稍后要执行它的时候，该 `block` 可能已经无效了。
-3. `timer` 现在的 `target` 是 `NSTimer` 类对象，这是个单例，因此计时器是否会保留它，其实都无所谓。此处依然有保留环，然而因为类对象（**class Object**）无需回收，所以不用担心。
+2. `userInfo` 可以用来存放不透明值（**opaque value**），只要 `timer` 有效，就会一直保留着它。传入参数时要通过 `copy` 方法将 `block` 拷贝到“堆”上，否则等到稍后要执行它的时候，该 `block` 可能已经无效了。
+3. `timer` 现在的 `target` 是 `NSTimer` 类对象，这是个单例，因此 `timer` 是否会保留它，其实都无所谓。此处依然有保留环，然而因为类对象（**class Object**）无需回收，所以不用担心。
 
 # 小结
 
