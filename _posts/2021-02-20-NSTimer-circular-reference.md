@@ -116,13 +116,22 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
-    NSMethodSignature *signature = [self.target methodSignatureForSelector:sel];
-    return signature;
+    if ([self.target respondsToSelector:sel]) {
+        NSMethodSignature *signature = [self.target methodSignatureForSelector:sel];
+        return signature;
+    } else {
+        return [super methodSignatureForSelector:sel];
+    }
 }
 
 -(void)forwardInvocation:(NSInvocation *)invocation {
-    invocation.target = self.target;
-    [invocation invoke];
+    SEL aSelector = invocation.selector;
+    if ([self.target respondsToSelector:aSelector]) {
+        invocation.target = self.target;
+        [invocation invoke];
+    } else {
+        [super forwardInvocation:invocation];
+    }
 }
 
 @end
