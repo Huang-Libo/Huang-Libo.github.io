@@ -76,11 +76,14 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 
 # 方法三：使用 dispatch_source 定时器（推荐）
 
+> **Foundation** 中的 `NSTimer` 对应 **Core Foundation** 中的 `CFRunLoopTimerRef`。  
+> 可见 `NSTimer` 与 `RunLoop` 息息相关。
+
 使用 `dispatch_source` 定时器的案例，可参看 [MSWeakTimer](https://github.com/mindsnacks/MSWeakTimer)。  
 
-另外，由于 `NSTimer` 需要添加到 Runloop 中，当 Runloop 繁忙时，`timer` 的事件就不能及时执行，会出现不准时的问题。  
+另外，由于 `NSTimer` 需要添加到 RunLoop 中，当 RunLoop 繁忙时，`timer` 的事件就不能及时执行，会出现不准时的问题。  
 
-而 `dispatch_source` 不依赖 Runloop，所以比 `NSTimer` **更准时**。  
+而 `dispatch_source` 不依赖 RunLoop，所以比 `NSTimer` **更准时**。  
 
 # 方法四：使用 NSProxy 做中间件（推荐，有创意）
 
@@ -255,7 +258,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 # 小结
 
 - `NSTimer` 对象会保留其目标，直到 timer 本身失效为止，调用 invalidate 方法可令 timer 失效；另外，一次性的 timer 在触发完任务之后也会失效。
-- `dispatch_source` 定时器不受 Runloop 影响，比 `NSTimer` 更准时的。 在对时间精确度要求高的场景中，`NSTimer` 并不适用。  
+- `dispatch_source` 定时器不受 RunLoop 影响，比 `NSTimer` 更准时的。 在对时间精确度要求高的场景中，`NSTimer` 并不适用。  
 
 # 相关资料
 
