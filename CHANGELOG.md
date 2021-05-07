@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 20210508
+
+1. `jekyll-theme-chirpy` 更新至 [v4.0.0](https://github.com/cotes2020/jekyll-theme-chirpy/releases/tag/v4.0.0)，主要添加了图片放大查看的功能。
+2. 删除了 `_includes` 目录，`assets` 下的的 `js`、`css` 目录。这样就会使用主题的默认文件，避免了主题升级后还需手动更新这些文件。
+
 ## 20210216
 
 将主题由 [TeXt theme](https://github.com/kitian616/jekyll-TeXt-theme) 换成 [chirpy](https://github.com/cotes2020/jekyll-theme-chirpy) 。chirpy 支持随系统切换主题（普通/暗黑），且细节做的更好，比如 TOC 有自动换行，而 TeXt theme 就会因为截断而显示不全。
