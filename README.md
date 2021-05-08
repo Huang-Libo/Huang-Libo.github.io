@@ -32,6 +32,10 @@ bundle update jekyll-theme-chirpy
 bundle info --path jekyll-theme-chirpy
 ```
 
+## 自定义图标 favicon
+
+在站点的 `/assets/img/favicons` 目录下添加图片资源，详情请参考文档：https://chirpy.cotes.info/posts/customize-the-favicon/  
+
 ## 其他设置
 
 Google 阅读人数统计在 `_config.yml` 中设置，目前还未设置。  
