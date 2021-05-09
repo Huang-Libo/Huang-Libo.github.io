@@ -117,9 +117,8 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
     if ([self.target respondsToSelector:sel]) {
         NSMethodSignature *signature = [self.target methodSignatureForSelector:sel];
         return signature;
-    } else {
-        return [super methodSignatureForSelector:sel];
     }
+    return [super methodSignatureForSelector:sel];
 }
 
 -(void)forwardInvocation:(NSInvocation *)invocation {
