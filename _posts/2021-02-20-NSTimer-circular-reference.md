@@ -7,7 +7,9 @@ tags: iOS timer NSTimer
 
 # 典型案例：使用 Target-Action 模式添加 NSTimer
 
-先看看下面的代码有什么问题：  
+考虑这种场景：进入一个页面后，启动 timer；退出此页面后，timer 也销毁。  
+
+看看下面的代码实现有什么问题：  
 
 ```objc
 #import "ViewController.h"
@@ -51,15 +53,15 @@ tags: iOS timer NSTimer
 
 ![](/images/2021/NSTimer-circular-reference-1.png)
 
-由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致其 `dealloc` 方法不会执行，因此 `dealloc` 里 `timer` 的 `invalidate` 也就无法执行了。
+由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致其 `dealloc` 方法不会执行，因此 `dealloc` 里的 `[self.timer invalidate]` 也就无法执行了。
 
 **接下来讲讲常见的解决方法。**  
 
-# 方法一：打破循环引用
+# 方法一：在其它地方调用 `invalidate` 方法
 
-由上述分析可知，由于存在循环引用，所以 `dealloc` 方法不会执行。我们可以在 `viewWillDisappear` 等 view 事件里主动销毁 timer，这样就能打破循环引用了。  
+由上述分析可知，由于存在循环引用，所以 `dealloc` 方法不会执行。我们可以在 `viewWillDisappear` 等 view 事件里调用 `invalidate` 销毁 timer，这样就能打破循环引用了。  
 
-可以根据项目的需求自行决定在哪个事件里销毁 timer。
+不太推荐使用此方案，但在某些场景中或许恰好适用。可以根据项目的需求自行决定在哪个事件里销毁 timer。
 
 # 方法二：使用 iOS 10 添加的新 API（推荐）
 
@@ -74,16 +76,9 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 }];
 ```
 
-# 方法三：使用 dispatch_source 定时器（推荐）
-
-> **Foundation** 中的 `NSTimer` 对应 **Core Foundation** 中的 `CFRunLoopTimerRef`。  
-> 可见 `NSTimer` 与 `RunLoop` 息息相关。
+# 方法三：使用 dispatch_source 定时器（推荐） 
 
 使用 `dispatch_source` 定时器的案例，可参看 [MSWeakTimer](https://github.com/mindsnacks/MSWeakTimer)。  
-
-另外，由于 `NSTimer` 需要添加到 RunLoop 中，当 RunLoop 繁忙时，`timer` 的事件就不能及时执行，会出现不准时的问题。  
-
-而 `dispatch_source` 不依赖 RunLoop，所以比 `NSTimer` **更准时**。  
 
 # 方法四：使用 NSProxy 做中间件（推荐，有创意）
 
@@ -210,43 +205,27 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 @end
 ```
 
-在 `viewController` 中调用上述分类方法示例（需要注意的是，传入的 block 不要强引用 viewController）：
+在 `viewController` 中调用上述分类方法（需要注意的是，block 中不要强引用 viewController）：  
+
+方式一（使用 currentRunLoop 的 default mode）：  
 
 ```objc
-@interface ViewController ()
-@property (nonatomic, strong) NSTimer *timer;
-@end
+__weak typeof(self) weakSelf = self;
+self.timer = [NSTimer eoc_scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    NSLog(@"%@, %@", strongSelf, timer);
+}];
+```
 
-@implementation ViewController
+方式二（可自行选择 mode）：  
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
-    __weak typeof(self) weakSelf = self;
-    
-    // 1. 使用 currentRunLoop 的 default mode
-    /*
-     self.timer = [NSTimer eoc_scheduledTimerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        NSLog(@"%@, %@", strongSelf, timer);
-     }];
-    */
-    
-    // 2. 可自行选择 mode
-    self.timer = [NSTimer eoc_timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
-        __strong typeof(weakSelf) strongSelf = weakSelf;
-        NSLog(@"%@, %@", strongSelf, timer);
-    }];
-    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
-}
-
-- (void)dealloc {
-    [self.timer invalidate];
-    self.timer = nil;
-    NSLog(@"%s", __func__);
-}
-
-@end
+```objc
+__weak typeof(self) weakSelf = self;
+self.timer = [NSTimer eoc_timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Nonnull timer) {
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    NSLog(@"%@, %@", strongSelf, timer);
+}];
+[[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
 ```
 
 《Effective Objective-C 2.0》对上述代码的解读：  
@@ -257,8 +236,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 
 # 小结
 
-- `NSTimer` 对象会保留其目标，直到 timer 本身失效为止，调用 invalidate 方法可令 timer 失效；另外，一次性的 timer 在触发完任务之后也会失效。
-- `dispatch_source` 定时器不受 RunLoop 影响，比 `NSTimer` 更准时的。 在对时间精确度要求高的场景中，`NSTimer` 并不适用。  
+- `NSTimer` 对象会保留其目标，直到 timer 本身失效为止，调用 invalidate 方法可令 timer 失效；另外，一次性的 timer 在触发完任务之后会自动失效。
 
 # 相关资料
 
