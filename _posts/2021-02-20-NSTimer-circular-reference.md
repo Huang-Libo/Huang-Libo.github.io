@@ -236,6 +236,8 @@ self.timer = [NSTimer eoc_timerWithTimeInterval:1 repeats:YES block:^(NSTimer * 
 # 小结
 
 - `NSTimer` 对象会保留其目标，直到 timer 本身失效为止，调用 invalidate 方法可令 timer 失效；另外，一次性的 timer 在触发完任务之后会自动失效。
+- `dispatch_source` 定时器在大多数场景下可以替代 `NSTimer` 。
+- 用 `NSProxy` 做消息转发可以解决一些循环引用的问题。
 
 # 相关资料
 
