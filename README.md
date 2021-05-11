@@ -24,6 +24,10 @@ bundle exec jekyll serve --drafts
 
 **startup template for Jekyll Theme Chirpy**（包含新建站点需要的素材，也可用来 debug）：https://github.com/cotes2020/chirpy-starter
 
+这些站点也使用了 Chirpy Theme，可前往观摩：  
+
+- https://onevcat.com/
+
 # Chirpy Theme 集成的方式
 
 [本站点是使用RubyGems 方式安装的 Chirpy Theme](https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/docs/README.zh-CN.md#rubygems-%E5%AE%89%E8%A3%85)。   
