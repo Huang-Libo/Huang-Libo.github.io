@@ -58,7 +58,7 @@ Google 阅读人数统计在 `_config.yml` 中设置，目前还未设置。
 
 # 写博客：vscode 及相关插件
 
-> 笔者最初用的是 MWeb，其 Markdown 相关快捷键较多，但不支持 Jekyll 中使用*绝对路径*的图片。 
+> 笔者最初用的是 MWeb，其 Markdown 相关快捷键较多，但其无法显示 Jekyll 中使用*绝对路径*的图片。 
 
 vscode 中有有许多 Markdown 和 Jekyll 相关的插件，极大地提高了写文章的效率。  
 
