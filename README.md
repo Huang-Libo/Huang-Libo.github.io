@@ -94,3 +94,55 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 
 - 如果是在桌面端使用 `Chrome`，则按 **cmd + Shift + R** 强制刷新页面。
 - 如果是在 iPhone 上使用 `Safari`，则可以去 **设置 - Safari - 高级 - 网站数据** 中删除相关站点的缓存。
+
+## 执行 `bundle install` 失败：http_parser.rb (0.6.0) 导致的问题
+
+![](images/GitHub/http_parser-error.png)
+
+原因：路径中有**空格**引起的。
+
+当前站点源文件的路径为：    
+
+```
+~/Library/Mobile Documents/iCloud~com~coderforart~iOS~MWeb/Documents/Huang-Libo.github.io
+```
+
+一个解决方案是将相应目录中的空格去掉，但是这是一个 **iCloud Driver** 的路径，修改它会导致 **iCloud Driver** 无法正常使用。  
+
+这个问题是 `http_parser.rb` **0.6.0** 版本的 bug 引起的，已经在其 master 分支上修复了，但未打 tag 发布新版本。    
+
+解决方案：  
+
+在 `Gemfile` 中添加：  
+
+```ruby
+gem 'http_parser.rb', git: "git@github.com:tmm1/http_parser.rb.git"
+```
+
+参考连接：  
+
+- https://github.com/tmm1/http_parser.rb/issues/47#issuecomment-544196403
+
+## 修改 RubyGems 源
+
+如果当前网络连默认源比较慢的话，可以考虑切换为国内源。
+
+- Ruby China 源（推荐）：https://gems.ruby-china.com/
+- 清华大学源：https://mirrors.tuna.tsinghua.edu.cn/help/rubygems/
+
+相关配置文件：  
+
+- `~/.gemrc`：RubyGems 的配置
+- `.bundle/config`：bundler 的配置，可查看其镜像设置
+
+注意：切换了 RubyGems 镜像之后，bundler 镜像也要单独配置。切换回默认源时，记得去 `.bundle/config` 中把镜像的配置删掉。  
+
+配置 bundler 镜像的语法规则：  
+
+```
+bundle config mirror.https://rubygems.org https://<rubygems-mirror.org>
+
+```
+
+bundler 镜像配置的官方文档： http://bundler.io/v1.16/man/bundle-config.1.html#MIRRORS-OF-GEM-SOURCES  
+
