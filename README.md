@@ -123,6 +123,12 @@ gem 'http_parser.rb', git: "git@github.com:tmm1/http_parser.rb.git"
 
 - https://github.com/tmm1/http_parser.rb/issues/47#issuecomment-544196403
 
+**补充说明**：  
+
+这个改动只能在本地 `bundle install` 时使用，不要提交到 GitHub，否则会构建失败（可能是不支持这种集成方式）：  
+
+![](images/GitHub/http_parser-github-runner-error.png) 
+
 ## 修改 RubyGems 源
 
 如果当前网络连默认源比较慢的话，可以考虑切换为国内源。
