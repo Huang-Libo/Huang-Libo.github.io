@@ -17,7 +17,7 @@ timezone: Asia/Shanghai
 # --------------------------
 title: BOB's blog                          # the main title
 
-tagline: 记录学习和生活的点滴。   # it will display as the sub-title
+tagline: Just for Fun!   # it will display as the sub-title
 
 description: >-                        # used by seo meta and the atom feed
   BOB BOB BOB 开坦克的 BOB 。
