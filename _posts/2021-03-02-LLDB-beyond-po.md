@@ -1,13 +1,18 @@
 ---
-title: "LLDB Beyond po (一): po、p、v 命令"
-tags: LLDB
+title: "《LLDB: Beyond \"po\"》：po、p、v 命令及自定义 Data Formatter"
+tags: [iOS, LLDB, WWDC]
 ---
+
+> 示例 project：[https://github.com/Bob-Playground/Travel](https://github.com/Bob-Playground/Travel)  
 
 # 前言
 
-[WWDC 2019 / 429](https://developer.apple.com/videos/play/wwdc2019/429/) 介绍了 Xcode 11 中 `LLDB` 的常用技巧及其原理，本文做一个摘要和总结。  
+[WWDC 2019 / 429](https://developer.apple.com/videos/play/wwdc2019/429/) 介绍了 *Xcode 11* 中 `LLDB` 的常用功能及其原理，内容包含：  
 
-示例 project：[https://github.com/Bob-Playground/Travel](https://github.com/Bob-Playground/Travel)  
+1. `LLDB` 中的 `po`、`p`、`v` 命令
+2. 在 `LLDB` 中自定义 `Data Formatter`
+
+本文做一个摘要和总结。  
 
 # LLDB 常用命令一：po
 
