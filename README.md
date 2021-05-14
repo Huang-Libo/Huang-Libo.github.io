@@ -139,7 +139,7 @@ gem 'http_parser.rb', git: "git@github.com:tmm1/http_parser.rb.git"
 相关配置文件：  
 
 - `~/.gemrc`：RubyGems 的配置
-- `.bundle/config`：bundler 的配置，可查看其镜像设置
+- `~/.bundle/config`：bundler 的配置，可查看其镜像设置
 
 注意：切换了 RubyGems 镜像之后，bundler 镜像也要单独配置。切换回默认源时，记得去 `.bundle/config` 中把镜像的配置删掉。  
 
@@ -152,3 +152,12 @@ bundle config mirror.https://rubygems.org https://<rubygems-mirror.org>
 
 bundler 镜像配置的官方文档： http://bundler.io/v1.16/man/bundle-config.1.html#MIRRORS-OF-GEM-SOURCES  
 
+## bundle 相关设置
+
+如果 `bundle install` 时不想使用 `sudo`，可指定 **local path**：  
+
+```
+bundle config set --local path 'vendor/bundle'
+```
+
+然后再执行 `bundle install`。  
