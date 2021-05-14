@@ -1,6 +1,6 @@
 ---
 title:  "ObjC 中 selector, method, message 的区别"
-tags: iOS
+tags: [iOS, Runtime]
 ---
 
 有点晚了, 先占个坑待填.

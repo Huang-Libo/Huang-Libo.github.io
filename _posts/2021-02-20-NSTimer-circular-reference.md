@@ -1,6 +1,6 @@
 ---
 title:  "警惕 NSTimer 引起的循环引用"
-tags: iOS timer NSTimer 
+tags: [iOS, 定时器, NSTimer]
 ---
 
 > 示例 project：[https://github.com/BOB-Module/NSTimer-Utils](https://github.com/BOB-Module/NSTimer-Utils)
@@ -79,6 +79,8 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 # 方法三：使用 dispatch_source 定时器（推荐） 
 
 使用 `dispatch_source` 定时器的案例，可参看 [MSWeakTimer](https://github.com/mindsnacks/MSWeakTimer)。  
+
+// TODO：写一篇相关博客，在这里附上链接。
 
 # 方法四：使用 NSProxy 做中间件（推荐，有创意）
 

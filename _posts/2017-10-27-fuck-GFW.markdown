@@ -1,6 +1,6 @@
 ---
 title:  "shadowsocks 改用 443 端口"
-tags: 互联网
+tags: [proxy, shadowsocks]
 ---
 
 ## 情况分析
