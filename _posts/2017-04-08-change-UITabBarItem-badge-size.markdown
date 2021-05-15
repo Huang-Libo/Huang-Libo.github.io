@@ -1,6 +1,6 @@
 ---
 title:  "改变 UITabBarItem 上 badge(小红点)的大小"
-categories: [编程, iOS Dev Tips]
+categories: [攻城狮, iOS Dev Tips]
 tags: [iOS, UIKit, UITabBar]
 ---
 

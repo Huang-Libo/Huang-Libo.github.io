@@ -1,5 +1,6 @@
 ---
 title:  "放弃Ghost，拥抱Github Pages + Jekyll"
+categories: [随笔]
 tags: [关于写博客]
 ---
 

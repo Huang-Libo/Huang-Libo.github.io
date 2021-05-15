@@ -1,6 +1,6 @@
 ---
 title: 在 macOS 的 Mission Control 中展示完整的桌面预览
-categories: [macOS, macOS Tools]
+categories: [攻城狮, macOS Tools]
 tags: [macOS]
 ---
 

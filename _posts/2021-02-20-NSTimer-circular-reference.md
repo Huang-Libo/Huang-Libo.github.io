@@ -1,6 +1,6 @@
 ---
 title:  "警惕 NSTimer 引起的循环引用"
-categories: [编程, iOS Dev Tips]
+categories: [攻城狮, iOS Dev Tips]
 tags: [iOS, 定时器, NSTimer]
 ---
 

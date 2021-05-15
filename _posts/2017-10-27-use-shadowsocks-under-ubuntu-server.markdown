@@ -1,6 +1,6 @@
 ---
 title:  "在 Ubuntu Server 中使用 Shadowsocks 客户端"
-categories: [Network, Proxy Tools]
+categories: [攻城狮, Proxy Tools]
 tags: [Proxy, Shadowsocks]
 ---
 
