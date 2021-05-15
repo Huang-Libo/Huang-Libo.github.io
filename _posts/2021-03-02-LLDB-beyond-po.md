@@ -223,7 +223,7 @@ frame variable cruise
 小结：  
 
 - `po` 和 `p` 可使用语言的全部特性。LLDB 根据用户的输入，生成代码编译运行。可以进行调用方法、计算表达式等操作。
-- `po` 可以获得对象的 description，`p` 和 `v` 能使用 **Data Formatter Subsystem** 处理 **result**。
+- `po` 可以获得对象的 **description**，`p` 和 `v` 能使用 **Data Formatter Subsystem** 处理 **result**。
 - `p` 可以对 **result** 做 **动态类型解析**。
 - `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **动态类型解析**，但不能用于调用方法、计算表达式等。
 
