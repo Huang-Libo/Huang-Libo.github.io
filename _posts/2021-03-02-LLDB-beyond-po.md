@@ -15,7 +15,9 @@ tags: [iOS, LLDB, WWDC]
 
 本文做一个摘要和总结。  
 
-# LLDB 常用命令一：po
+# LLDB 常用命令 po、p、v
+
+## LLDB 常用命令一：po
 
 示例代码：
 
@@ -30,7 +32,7 @@ let cruise = Trip(
     destinations: ["Sorrento", "Capri", "Taormina"])
 ```
 
-## po 的常见用法
+### po 的常见用法
 
 `po` 常见用法是打印变量：  
 
@@ -61,7 +63,7 @@ let cruise = Trip(
 
 `po` 还可以计算表达式，等等。  
 
-## po 是 expression 命令的 alias
+### po 是 expression 命令的 alias
 
 > `po` 不是 LLDB 中的 first-class 命令。
 
@@ -80,7 +82,7 @@ help expression
 
 ![](/images/2021/lldb-help.jpg)
 
-## 创建自定义的 alias
+### 创建自定义的 alias
 
 我们也可以创建自己的 *alias*：
 
@@ -94,7 +96,7 @@ command alias my_po expression -O --
 my_po cruise
 ```
 
-## po 的原理
+### po 的原理
 
 po 的执行流程如下，假如用户输入了 `po view`：
 
@@ -114,7 +116,7 @@ extension Trip: CustomDebugStringConvertible {
 
 对于 `Objective-C`，则可覆盖 `debugDescription` 方法或 `description` 属性来实现自定义输出。  
 
-# LLDB 常用命令二：p
+## LLDB 常用命令二：p
 
 和 `po` 和类似的命令是 `p`：
 
@@ -137,7 +139,7 @@ extension Trip: CustomDebugStringConvertible {
 "Mediterranean Cruise"
 ```
 
-## p 是 expression 命令的 alias
+### p 是 expression 命令的 alias
 
 > `p` 不是 LLDB 中的 first-class 命令。
 
@@ -147,7 +149,7 @@ extension Trip: CustomDebugStringConvertible {
 expression cruise
 ```
 
-## p 的原理
+### p 的原理
 
 ![](/images/2021/lldb-p-1.jpg)
 
@@ -187,7 +189,7 @@ expression --raw -- cruise
 ![](/images/2021/lldb-expression-raw.jpg)
 
 
-# LLDB 常用命令三：v
+## LLDB 常用命令三：v
 
 在上面的例子中，我们需要强制转换 `cruise` 的类型，才能打印 `name`。其实 LLDB 的 `v` 命令，可以更便捷地完成这项任务：
 
@@ -195,7 +197,7 @@ expression --raw -- cruise
 
 从输出我们可以看到，`v cruise` 的输出和 `p cruise` 类似。但是，`p cruise.name` 报错了，而 `v cruise.name` 能正常打印 name。
 
-## v 是 frame 命令的 alias
+### v 是 frame variable 命令的 alias
 
 实际上，`v` 是 Xcode 10.2 引入的 *alias*，`v cruise` 等效于：
 
@@ -203,7 +205,7 @@ expression --raw -- cruise
 frame variable cruise
 ```
 
-## v 的原理
+### v 的原理
 
 ![](/images/2021/lldb-v-2.jpg)
 
@@ -213,7 +215,7 @@ frame variable cruise
 
 由于不需要编译和执行代码，`v` 的速度也比 `po` 或 `p` 快很多。但是，这也决定了 `v` 只能读取值，而**无法调用方法或计算表达式**。  
 
-# po，p，v 的使用场景
+## po，p，v 的使用场景
 
 ![](/images/2021/lldb-compare-po-p-v.jpg)
 
