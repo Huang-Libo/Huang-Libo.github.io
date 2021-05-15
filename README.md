@@ -80,6 +80,18 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 
 这个插件可以显示 Jekyll中使用*绝对路径*的图片。   
 
+## Markdown All in One
+
+https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
+
+功能：  
+
+- 快捷键
+  - cmd + B ：加粗
+  - cmd + I ：斜体
+- 添加图片时有路径自动补全
+- 预览
+
 # FAQ
 
 ## 站点的 favicon 显示不对
