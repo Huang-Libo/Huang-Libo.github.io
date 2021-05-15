@@ -1,6 +1,7 @@
 ---
-title:  "shadowsocks 改用 443 端口"
-tags: [proxy, shadowsocks]
+title:  "Shadowsocks 改用 443 端口"
+categories: [Network, Proxy Tools]
+tags: [Proxy, Shadowsocks]
 ---
 
 ## 情况分析

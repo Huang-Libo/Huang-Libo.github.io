@@ -1,5 +1,6 @@
 ---
 title: "《LLDB: Beyond \"po\"》：po、p、v 命令及自定义 Data Formatter"
+categories: [编程, WWDC]
 tags: [iOS, LLDB, WWDC]
 ---
 

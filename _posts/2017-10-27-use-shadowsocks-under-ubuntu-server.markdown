@@ -1,6 +1,7 @@
 ---
-title:  "在 Ubuntu Server 中使用 shadowsocks 客户端"
-tags: [proxy, shadowsocks]
+title:  "在 Ubuntu Server 中使用 Shadowsocks 客户端"
+categories: [Network, Proxy Tools]
+tags: [Proxy, Shadowsocks]
 ---
 
 ## 一个墙内 Ubuntu Server 的无奈
