@@ -227,7 +227,266 @@ frame variable cruise
 - `p` 可以对 **result** 做 **动态类型解析**。
 - `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **动态类型解析**，但不能用于调用方法、计算表达式等。
 
-# Reference
+
+# 自定义 Data Formatter
+
+> *LLDB* 有一个 *Data Formatter Subsystem*，允许开发者为他们的变量自定义显示选项。[^1]  
+
+## Filters
+
+> 如果一个类型的成员变量很多，而我们只想看其中某个变量的值，则可为这个类型添加一个 *Filter*。
+
+如果我们只想看 `Trip` 的 `name` 属性，添加 *Filter* ：
+
+```lldb
+type filter add Travel.Trip --child name
+```
+
+再打印，就只显示 `name` 属性了：  
+
+```lldb
+(lldb) v cruise
+(Travel.Trip) cruise = (name = "Mediterranean Cruise")
+```
+
+删除 *Filter* ：  
+
+```lldb
+type filter delete Travel.Trip
+```
+
+## Summary Strings
+
+*Xcode variable* 界面中会显示变量的 *Summary* ：  
+
+![](/images/2021/lldb-xcode-variable-1.jpg)
+
+可以看出，`name` (`String`) 和 `destinations` (`Array`) 这两个系统类型的变量都显示了 *Summary* ，而自定的 `Trip` 类型的 `cruise` 变量没有显示 *Summary* 。  
+
+我们可以为 `Trip` 类型添加自定义的 *Summary*，比如显示旅程的起点和终点。添加 *Summary* ：  
+
+```lldb
+type summary add Travel.Trip --summary-string "${var.name} from ${var.destinations[0]} to ${var.destinations[2]}"
+```
+
+和 `v` 命令一样，要使用 `${var.name}` 这种格式来访问变量。  
+
+再调用 `v cruise` ：
+
+```lldb
+(lldb) v cruise
+(Travel.Trip) cruise = "Mediterranean Cruise" from "Sorrento" to "Taormina"
+```
+
+下次进入断点时，*Xcode variable* 界面中也会显示 `cruise` 变量的 *Summary* ：
+
+![](/images/2021/lldb-xcode-variable-2.jpg)
+
+删除 Summary ：
+
+```lldb
+type summary delete Travel.Trip
+```
+
+上述例子有个问题：由于 *Formatter* 无法访问*计算变量（computed variables）*，如数组的元素总数，所以数组 index 只能*硬编码*。  
+
+# *Python3* 脚本在 *LLDB* 中的使用
+
+> 从 *Xcode 11* 开始，Scripting 开始使用 *Python3* 。
+
+## 简介
+
+要解决上述的*硬编码*问题，可使用 *LLDB's Python API* 来添加 *Formatter* 。
+
+优势：  
+
+- 可以使用 Python 进行任意的计算
+- Full access to *LLDB's Python API* (*LLDB Scripting Bridge API*)
+
+
+*LLDB Scripting Bridge* 中的常用类型：  
+
+![](/images/2021/lldb-scripting-bridge.jpg)
+
+## 在 Xcode Console 的交互界面中使用 Python
+
+在 *LLDB* 中输入 `script` 命令进入到 *Python* 交互界面：  
+
+```python
+(lldb) script
+Python Interactive Interpreter. To exit, type 'quit()', 'exit()'.
+>>>
+```
+
+- 调用 `lldb.frame` 可获取当前 *Frame* ，返回值的类型是 `SBFrame` 。  
+- 调用 `FindVariable` 可以获取到指定的变量，返回值的类型是 `SBValue` 。  
+
+```python
+>>> cruise = lldb.frame.FindVariable("cruise")
+>>> print(cruise) # 为什么在 Xcode 12.5 中打印的是 No value ？
+(Travel.Trip) cruise = {
+  name = "Mediterranean Cruise"
+  destinations = 3 values {
+    _buffer = {
+      _storage = (rawValue = 0x0000600002c22260 -> 0x00007fff873fddd8 libswiftCore.dylib`InitialAllocationPool + 72)
+    }
+  }
+}
+```
+
+调用 `SBValue` 的 `GetChildMemberWithName` 方法，可以获取到 `cruise` 的 `destinations` 属性，返回值的类型是 `SBValue` 。
+
+```python
+>>> destinations = cruise.GetChildMemberWithName("destinations")
+>>> print(destinations)
+([String]) destinations = 3 values {
+  [0] = "Sorrento"
+  [1] = "Capri"
+  [2] = "Taormina"
+}
+```
+
+获取数组的总数：  
+
+```python
+>>> count = destinations.GetNumChildren()
+```
+
+获取出发地的名称：  
+
+```python
+>>> begin = destinations.GetChildAtIndex(0)
+>>> print(begin)
+(String) [0] = "Sorrento"
+```
+
+获取目的地的名称：  
+
+```python
+>>> end = destinations.GetChildAtIndex(count - 1)
+>>> print(end)
+(String) [2] = "Taormina"
+```
+
+格式化打印：  
+
+```python
+>>> print("Trip from {} to {}".format(begin, end))
+Trip from (String) [0] = "Sorrento" to (String) [2] = "Taormina"
+```
+
+使用 `GetSummary` 方法优化格式化打印：  
+
+```python
+>>> print("Trip from {} to {}".format(begin.GetSummary(), end.GetSummary()))
+Trip from "Sorrento" to "Taormina"
+```
+
+## 加载 Python 脚本
+
+可将上述操作写入名为 `Trip.py` 的脚本中，在其中添加 `SummaryProvider` 方法：  
+
+```python
+def SummaryProvider(value, _):
+	destinations = value.GetChildMemberWithName("destinations")
+	count = destinations.GetNumChildren()
+	if count == 0:
+		return "Empty trip"
+
+	begin = destinations.GetChildAtIndex(0).GetSummary()
+	end = destinations.GetChildAtIndex(count - 1).GetSummary()
+	
+	return "Trip with {} stops from {} to {}".format(count, begin, end)
+```
+
+将脚本放入 `~/.lldb` 目录下，加载脚本：  
+
+```lldb
+command script import ~/.lldb/Trip.py
+```
+
+使用脚本提供的 `SummaryProvider` 方法，为 `Trip` 类型添加 *Summary* ：
+
+```lldb
+type summary add Travel.Trip --python-function Trip.SummaryProvider
+```
+
+再次输入 `v cruise`，就得到了自定义格式化的输出：
+
+```lldb
+(lldb) v cruise
+(Travel.Trip) cruise = Trip with 3 stops from "Sorrento" to "Taormina"
+```
+
+除了 *Console* ，*Xcode Variable* 界面中也显示了自定义 *Formatter* 的内容：
+
+![](/images/2021/lldb-xcode-variable-3.jpg)
+
+## Synthetic Children
+
+> [https://lldb.llvm.org/use/variable.html#synthetic-children](https://lldb.llvm.org/use/variable.html#synthetic-children)
+
+在 `Trip.py` 脚本中添加 *Python* **class** ：  
+
+```python
+// Trip.py
+class ExampleSyntheticChildrenProvider:
+    def __init__(self, value, _):
+        ...
+    
+    def num_children(self):
+        ...
+    
+    def get_child_at_index(self, index):
+        ...
+    
+    def get_child_index(self, name):
+        ...
+```
+
+再次加载 `Trip.py` 脚本会使其 reload ：
+
+```python
+command script import ~/.lldb/Trip.py
+```
+
+添加 *Synthetic Children* ：
+
+```python
+type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvider
+```
+
+## Xcode Console 中添加的 Formatter 的有效期
+
+在 *Xcode Console* 中添加的 *Filters* 、*Summary Strings* 、*Synthetic Children* 等 *Formatter* 的有效期：  
+
+**有效**：  
+
+- 重新 Run 项目
+- 关闭 project 后重新打开
+
+**失效**：  
+
+- Xcode **退出（Quit）** 后，在 *Xcode Console* 中添加的 *Formatter* 就失效了，如果要使用，需要重新添加。
+
+## 脚本自动加载
+
+将加载脚本的命令写入到 `~/.lldbinit` ，可实现脚本自动加载。  
+
+```lldb
+# ~/.lldbinit
+
+# Load Trip.py
+command script import ~/.lldb/Trip.py
+
+# Register Trip summary provider
+type summary add Travel.Trip --python-function Trip.SummaryProvider
+
+# Register Trip child provider
+type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvider
+```
+
+# 参考资料
 
 ## WWDC 2019 / 429
 
@@ -237,3 +496,7 @@ frame variable cruise
 ## 其他资料
 
 [https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)  
+
+# Reference
+
+[^1]: *LLDB* 文档：[https://lldb.llvm.org/use/variable.html](https://lldb.llvm.org/use/variable.html)  
