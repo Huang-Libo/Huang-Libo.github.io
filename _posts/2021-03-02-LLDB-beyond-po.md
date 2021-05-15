@@ -85,13 +85,13 @@ help expression
 
 ### 创建自定义的 alias
 
-我们也可以创建自己的 *alias*：
+我们也可以创建自己的 *alias* ：
 
 ```lldb
 command alias my_po expression -O --
 ```
 
-使用自己创建的 `my_po`：
+使用自己创建的 `my_po` ：
 
 ```lldb
 my_po cruise
@@ -99,13 +99,13 @@ my_po cruise
 
 ### po 的原理
 
-po 的执行流程如下，假如用户输入了 `po view`：
+po 的执行流程如下，假如用户输入了 `po view` ：
 
 ![](/images/2021/lldb-po-1.jpg)
 
 此例中，LLDB 为 `po` 生成两次代码并编译、执行，最后展示相应的 description。
 
-如果想自定义 description，可以添加一个遵守 `CustomDebugStringConvertible` 协议的 extension：
+如果想自定义 description，可以添加一个遵守 `CustomDebugStringConvertible` 协议的 *extension* ：
 
 ```swift
 extension Trip: CustomDebugStringConvertible {
@@ -119,7 +119,7 @@ extension Trip: CustomDebugStringConvertible {
 
 ## LLDB 常用命令二：p
 
-和 `po` 和类似的命令是 `p`：
+和 `po` 和类似的命令是 `p` ：
 
 ```lldb
 (lldb) p cruise
