@@ -187,8 +187,7 @@ let cruise: Activity = Trip(
 expression --raw -- cruise
 ```
 
-![](/images/2021/lldb-expression-raw.jpg)
-
+![](/images/2021/lldb-expression-raw.jpg){: .normal}
 
 ## LLDB 常用命令三：v
 
