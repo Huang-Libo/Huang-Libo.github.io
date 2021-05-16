@@ -1,5 +1,5 @@
 ---
-title: "《LLDB: Beyond \"po\"》：po、p、v 命令；自定义 Data Formatter；Python3 脚本在 LLDB 中的使用"
+title: "《LLDB: Beyond \"po\"》：po、p、v 命令；自定义 Data Formatter；Python 脚本在 LLDB 中的使用"
 categories: [攻城狮, WWDC]
 tags: [iOS, LLDB, WWDC]
 ---
@@ -257,7 +257,7 @@ type filter delete Travel.Trip
 
 ## Summary Strings
 
-*Xcode variable* 界面中会显示变量的 *Summary* ：  
+*Xcode Variables* 界面中会显示变量的 *Summary* ：  
 
 ![](/images/2021/lldb-xcode-variable-1.jpg)
 
@@ -278,7 +278,7 @@ type summary add Travel.Trip --summary-string "${var.name} from ${var.destinatio
 (Travel.Trip) cruise = "Mediterranean Cruise" from "Sorrento" to "Taormina"
 ```
 
-下次进入断点时，*Xcode variable* 界面中也会显示 `cruise` 变量的 *Summary* ：
+下次进入断点时，*Xcode Variables* 界面中也会显示 `cruise` 变量的 *Summary* ：
 
 ![](/images/2021/lldb-xcode-variable-2.jpg)
 
@@ -290,27 +290,29 @@ type summary delete Travel.Trip
 
 上述例子有个问题：由于 *Formatter* 无法访问*计算变量（computed variables）*，如数组的元素总数，所以数组 index 只能*硬编码*。  
 
-# *Python3* 脚本在 *LLDB* 中的使用
+# Python 脚本在 LLDB 中的使用
 
-> 从 *Xcode 11* 开始，Scripting 开始使用 *Python3* 。
+> 从 *Xcode 11* 开始，*LLDB Scripting* 开始使用 *Python3* 。
 
-## 简介
-
-要解决上述的*硬编码*问题，可使用 *LLDB's Python API* 来添加 *Formatter* 。
+要解决上述的*硬编码*问题，可使用 *LLDB's Python API* 来添加 *Formatter* 。  
 
 优势：  
 
 - 可以使用 Python 进行任意的计算
-- Full access to *LLDB's Python API* (*LLDB Scripting Bridge API*)
+- Full access to *LLDB's Python API*
+
+## 简介
+
+*LLDB's Python API* : 即 *LLDB Scripting Bridge API*
 
 
-*LLDB Scripting Bridge* 中的常用类型：  
+*LLDB Scripting Bridge API* 中的常用类型：  
 
 ![](/images/2021/lldb-scripting-bridge.jpg)
 
 ## 在 Xcode Console 的交互界面中使用 Python
 
-在 *LLDB* 中输入 `script` 命令进入到 *Python* 交互界面：  
+在 *Xcode Console* 中输入 `script` 命令进入到 *Python* 交互界面：  
 
 ```python
 (lldb) script
@@ -318,7 +320,7 @@ Python Interactive Interpreter. To exit, type 'quit()', 'exit()'.
 >>>
 ```
 
-- 调用 `lldb.frame` 可获取当前 *Frame* ，返回值的类型是 `SBFrame` 。  
+- 调用 `lldb.frame` 可获取当前 *Frame* (栈桢)，返回值的类型是 `SBFrame` 。  
 - 调用 `FindVariable` 可以获取到指定的变量，返回值的类型是 `SBValue` 。  
 
 ```python
@@ -384,7 +386,7 @@ Trip from "Sorrento" to "Taormina"
 
 ## 加载 Python 脚本
 
-可将上述操作写入名为 `Trip.py` 的脚本中，在其中添加 `SummaryProvider` 方法：  
+可将上述操作写入名为 **Trip.py** 的脚本中，在其中添加 `SummaryProvider` 方法：  
 
 ```python
 def SummaryProvider(value, _):
@@ -399,13 +401,13 @@ def SummaryProvider(value, _):
 	return "Trip with {} stops from {} to {}".format(count, begin, end)
 ```
 
-将脚本放入 `~/.lldb` 目录下，加载脚本：  
+将脚本放入 `~/.lldb` 目录下，在 *Xcode Console* 中加载脚本：  
 
 ```lldb
 command script import ~/.lldb/Trip.py
 ```
 
-使用脚本提供的 `SummaryProvider` 方法，为 `Trip` 类型添加 *Summary* ：
+在 *Xcode Console* 中使用脚本提供的 `SummaryProvider` 方法，为 `Trip` 类型添加 *Summary* ：
 
 ```lldb
 type summary add Travel.Trip --python-function Trip.SummaryProvider
@@ -418,7 +420,7 @@ type summary add Travel.Trip --python-function Trip.SummaryProvider
 (Travel.Trip) cruise = Trip with 3 stops from "Sorrento" to "Taormina"
 ```
 
-除了 *Console* ，*Xcode Variable* 界面中也显示了自定义 *Formatter* 的内容：
+除了 *Xcode Console* ，*Xcode Variables* 界面中也显示了自定义 *Formatter* 的内容：
 
 ![](/images/2021/lldb-xcode-variable-3.jpg)
 
@@ -444,19 +446,19 @@ class ExampleSyntheticChildrenProvider:
         ...
 ```
 
-再次加载 `Trip.py` 脚本会使其 reload ：
+在 *Xcode Console* 中再次加载 `Trip.py` 脚本会使其 reload ：
 
-```python
+```lldb
 command script import ~/.lldb/Trip.py
 ```
 
-添加 *Synthetic Children* ：
+在 *Xcode Console* 中添加 *Synthetic Children* ：
 
-```python
+```lldb
 type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvider
 ```
 
-## Xcode Console 中添加的 Formatter 的有效期
+## 在 Xcode Console 中添加的 Formatter 的有效期
 
 在 *Xcode Console* 中添加的 *Filters* 、*Summary Strings* 、*Synthetic Children* 等 *Formatter* 的有效期：  
 
@@ -467,11 +469,13 @@ type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvi
 
 **失效**：  
 
-- Xcode **退出（Quit）** 后，在 *Xcode Console* 中添加的 *Formatter* 就失效了，如果要使用，需要重新添加。
+- Xcode **退出（Quit）** 后，在 *Xcode Console* 中添加的 *Formatter* 就失效了，如果要再次使用，需要重新添加。
 
-## 脚本自动加载
+## 脚本的自动加载
 
-将加载脚本的命令写入到 `~/.lldbinit` ，可实现脚本自动加载。  
+对于一些需要长期使用的 *Formatter* ，每次启动 *Xcode* 后，都要在 *Xcode Console* 中手动加载脚本和手动添加 *Formatter* ，很繁琐。  
+
+在 *LLDB* 启动时，会先执行 `~/.lldbinit` ，因此，可将加载脚本和添加 *Formatter* 的命令写入到 `~/.lldbinit` 中，实现脚本自动加载：  
 
 ```lldb
 # ~/.lldbinit
@@ -486,16 +490,18 @@ type summary add Travel.Trip --python-function Trip.SummaryProvider
 type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvider
 ```
 
+
+
 # 参考资料
 
 ## WWDC 2019 / 429
 
-[https://developer.apple.com/videos/play/wwdc2019/429/](https://developer.apple.com/videos/play/wwdc2019/429/)  
-[https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf](https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf)  
+- [https://developer.apple.com/videos/play/wwdc2019/429/](https://developer.apple.com/videos/play/wwdc2019/429/)  
+- [https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf](https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf)  
 
 ## 其他资料
 
-[https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)  
+- [https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)  
 
 # Reference
 
