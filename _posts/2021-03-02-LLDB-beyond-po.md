@@ -12,7 +12,7 @@ tags: [WWDC, iOS, LLDB]
 
 1. *LLDB* 中的 `po`、`p`、`v` 命令
 2. 在 *LLDB* 中自定义 *Data Formatter*
-3. *Python3* 脚本在 *LLDB* 中的使用。
+3. *Python* 脚本在 *LLDB* 中的使用。
 
 本文做一个摘要和总结。  
 
@@ -74,10 +74,9 @@ po 实际上是 `expression` 命令的一个 *alias*，`po cruise` 等效于：
 expression -O -- cruise
 ```
 
-参数说明：`-O` 是 `--object-description` 的简写。详细的参数说明可在 LLDB 内通过 `help expression` 查看（在 Xcode Console 或 System Console 中都可以），如：
+参数说明：`-O` 是 `--object-description` 的简写。详细的参数说明可在 LLDB 内通过 `help expression` 查看（在 *Xcode Console* 或 *System Console* 中都可以），如：
 
 ```lldb
-help po
 help expression
 ```
 
