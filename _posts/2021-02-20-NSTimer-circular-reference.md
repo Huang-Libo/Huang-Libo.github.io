@@ -41,10 +41,11 @@ tags: [iOS, 定时器, NSTimer]
 
 ## 问题描述
 
-退出此 ViewController 页面后，`NSLog(@"%s", __func__)` 不会打印，而 `NSLog(@"timerTriggered")` 会一直执行。说明 `dealloc` 方法没有调用。  
+我们期望的是，用户退出此 `viewController` 后，其 `dealloc` 会被系统调用，并执行我们添加的销毁 `timer` 的代码。  
+
+但是，退出此 ViewController 页面后，`NSLog(@"%s", __func__)` 不会打印，而 `NSLog(@"timerTriggered")` 会一直执行。说明 `dealloc` 方法没有调用。  
 
 显而易见，这里存在内存泄漏。  
-
 
 ## 原因分析
 
@@ -54,7 +55,7 @@ tags: [iOS, 定时器, NSTimer]
 
 ![](/images/2021/NSTimer-circular-reference-1.png)
 
-由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致其 `dealloc` 方法不会执行，因此 `dealloc` 里的 `[self.timer invalidate]` 也就无法执行了。
+由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致 `viewController` 的 `dealloc` 方法不会执行，因此 `dealloc` 里的 `[self.timer invalidate]` 也就无法执行了。
 
 **接下来讲讲常见的解决方法。**  
 
@@ -66,7 +67,7 @@ tags: [iOS, 定时器, NSTimer]
 
 # 方法二：使用 iOS 10 添加的新 API（推荐）
 
-在 **iOS 10** 及以上的项目中，可使用 `NSTimer` 新增的 `block` 范式的方法，只要确保 `block` 内没有循环引用即可：
+在 **iOS 10** 及以上的项目中，可使用 `NSTimer` 新增的 *block* 范式的方法，只要确保 *block* 内没有循环引用即可：
 
 ```objc
 __weak typeof(self) weakSelf = self;
@@ -166,9 +167,9 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 
 > 这个方案来自《Effective Objective-C 2.0》。
 
-如 [方法二](http://127.0.0.1:4000/posts/NSTimer-circular-reference/#方法二使用-ios-10-添加的新-api推荐) 所述，在 iOS 10 及以上的项目中，可使用 NSTimer 新增的 block 范式的方法。  
+如 [方法二](http://127.0.0.1:4000/posts/NSTimer-circular-reference/#方法二使用-ios-10-添加的新-api推荐) 所述，在 iOS 10 及以上的项目中，可使用 `NSTimer` 新增的 *block* 范式的方法。  
 
-在 iOS 10 之前，为了支持这种 block 范式 API，通常的做法是为 `NSTimer` 添加一个分类方法：
+在 iOS 10 之前，为了支持这种 *block* 范式 API，通常的做法是为 `NSTimer` 添加一个分类方法：
 
 `NSTimer+EOCBlocksSupport.h`
 
@@ -207,7 +208,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 target:proxy selector:@selector(ti
 @end
 ```
 
-在 `viewController` 中调用上述分类方法（需要注意的是，block 中不要强引用 viewController）：  
+在 `viewController` 中调用上述分类方法（需要注意的是，*block* 中不要强引用 viewController）：  
 
 方式一（使用 currentRunLoop 的 default mode）：  
 
