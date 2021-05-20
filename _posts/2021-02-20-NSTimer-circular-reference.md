@@ -1,7 +1,7 @@
 ---
 title:  "警惕 NSTimer 引起的循环引用"
 categories: [攻城狮, iOS Dev Tips]
-tags: [iOS, 定时器, NSTimer]
+tags: [iOS, 定时器, NSTimer, NSProxy]
 ---
 
 > 示例 project：[https://github.com/BOB-Module/NSTimer-Utils](https://github.com/BOB-Module/NSTimer-Utils)
