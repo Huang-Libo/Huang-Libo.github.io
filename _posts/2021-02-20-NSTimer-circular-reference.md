@@ -4,8 +4,6 @@ categories: [攻城狮, iOS Dev Tips]
 tags: [iOS, 定时器, NSTimer, NSProxy]
 ---
 
-> 示例 project：[https://github.com/BOB-Module/NSTimer-Utils](https://github.com/BOB-Module/NSTimer-Utils)
-
 # 典型案例：使用 Target-Action 模式添加 NSTimer
 
 考虑这种场景：进入一个页面后，启动 timer；退出此页面后，timer 也销毁。  
@@ -58,6 +56,8 @@ tags: [iOS, 定时器, NSTimer, NSProxy]
 由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致 `viewController` 的 `dealloc` 方法不会执行，因此 `dealloc` 里的 `[self.timer invalidate]` 也就无法执行了。
 
 **接下来讲讲常见的解决方法。**  
+
+> 示例 project：[https://github.com/BOB-Module/NSTimer-Utils](https://github.com/BOB-Module/NSTimer-Utils)
 
 # 方法一：在其它地方调用 `invalidate` 方法
 
