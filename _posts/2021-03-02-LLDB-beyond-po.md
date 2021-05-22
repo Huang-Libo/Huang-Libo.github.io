@@ -8,8 +8,8 @@ tags: [WWDC, iOS, LLDB]
 
 [WWDC 2019 / 429](https://developer.apple.com/videos/play/wwdc2019/429/) 介绍了 *Xcode 11* 中 *LLDB* 的常用功能及其原理，内容包含：  
 
-1. *LLDB* 中的 `po`、`p`、`v` 命令
-2. 在 *LLDB* 中自定义 *Data Formatter*
+1. *LLDB* 中的 `po`、`p`、`v` 命令；
+2. 在 *LLDB* 中自定义 *Data Formatter*；
 3. *Python* 脚本在 *LLDB* 中的使用。
 
 本文做一个摘要和总结。  
