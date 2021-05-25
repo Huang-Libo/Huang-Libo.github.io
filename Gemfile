@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gem "jekyll-theme-chirpy", "~> 4.0"
 
 # 指定 http_parser 使用最新代码，解决路径中有空格导致 bundle install 失败的问题
+# 最好将项目放在不含`空格`的路径下。
 # 参考：
 # 1. https://github.com/tmm1/http_parser.rb/issues/47#issuecomment-544196403
 # 2. https://github.com/Huang-Libo/Huang-Libo.github.io#faq
