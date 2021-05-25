@@ -14,8 +14,8 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 
 经过优化后：
 
-- **less memory usage**（减少了内存的使用）
-- **smaller binaries**（二进制包更小）
+- **Less memory usage**（减少了内存的使用）
+- **Smaller binaries**（二进制包更小）
 
 由于疫情影响，*WWDC 2020* 完全是线上举办的，官网上也没有给出演示 *PDF* ，只有[讲稿（即字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/WWDC-2020/10163-OC-Runtime-Changes/Transcript-Edited.md)。
 
@@ -40,13 +40,13 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 
 在 *iOS 14* 的 *Class Data Structure* 中新增了 `class_rw_ext_t` 类型。  
 
-我们先看看 *iOS 13* 上的 *Runtime* 是如何运行的。  
+我们先看看 *iOS 13* 的 *Runtime* 是如何运行的。  
 
 ## class_ro_t
 
-类对象( *class object* )中包含了我们最常访问的信息：指向元类的指针( *metaclass* )，指向父类的指针( *superclass* )，以及方法缓存( *method cache* )。  
+类对象( *class object* )中包含了我们最常访问的信息：指向元类的指针( *metaclass* )，指向父类的指针( *superclass* )，以及指向方法缓存的指针( *method cache* )。  
 
-类对象还有一个指针，指向存有更多信息的类型，叫做 `class_ro_t` ，其中的 **ro** 代表 **read only** 。`class_ro_t` 存储着**类的名称**，以及**实例方法列表**、**协议**、**属性**、**实例变量**等信息。  
+类对象还有一个指针，指向存有更多信息的类型，叫做 `class_ro_t` ，其中的 **ro** 代表 **read only** 。`class_ro_t` 存储着**类的名称**，以及**方法列表**、**协议**、**属性**、**实例变量**等信息。  
 
 *类对象*和 `class_ro_t` 的示意图：  
 
@@ -61,11 +61,11 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 为了理解后续要发生的事，需要了解 *clean memory* 和 *dirty memory* 的区别。
 
 Clean Memory
-: *Clean memory* 是加载后就不会改变的 memory ，比如 `class_ro_t` ，因为它是 *read only* 的。
+: *Clean memory* 是加载后就不会改变的 *memory* ，比如 `class_ro_t` ，因为它是 *read only* 的。
 : *Clean memory* 可以从 *memory* 中清除、为其他内容腾出空间。因为如果需要它，系统总是可以从 *disk* 重新加载它。
 
 Dirty Memory
-: *Dirty memory* 是当*进程*运行的时候会被改变的 memory ，比如*类对象*。因为 *Runtime* 会为*类对象*创建一个全新的 *method cache* ，并让*类对象*内的一个指针指向 *method cache* 。
+: *Dirty memory* 是当*进程*运行的时候会被改变的 *memory* ，比如*类对象*。因为 *Runtime* 会为*类对象*创建一个全新的 *method cache* ，并让*类对象*内的一个指针指向 *method cache* 。
 : *Dirty memory* 比 *Clean memory* 昂贵得多。它必须在*进程*运行期间一直存在。
 
 
@@ -77,13 +77,13 @@ Dirty Memory
 当*类***第一次使用时**，*Runtime* 创建了一个额外的类型，叫做 `class_rw_t` ，**rw** 代表 **read/write**（可读可写）。  
 
 ![](/images/2021/runtime-class_rw_t.jpg)
-_绿色部分是 dirty memory ，蓝色部分是 clean memory 。_
+_绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
-在 `class_rw_t` 中，存储在 *Runtime* 期间生成的新信息。  
+在 `class_rw_t` 中，存储在 *Runtime* 期间生成的信息。  
 
 例如，所有*类*都使用 *First Subclass* 和 *Next Sibling Class* 指针链接到一个树结构中，这允许运行时遍历当前使用的所有类，这对于使方法缓存失效是很有用的。（**这个地方的细节不太了解，作者也没细讲，待研究**）  
 
-`class_ro_t` 中已经有了 *Methods* 和 *Properties* ，为什么又在新创建的 `class_rw_t` 中添加它们呢？  
+`class_ro_t` 中已经有了 **方法列表**、**协议**、**属性** ，为什么又在新创建的 `class_rw_t` 中添加它们呢？  
 
 原因是 *Methods* 和 *Properties* 可以在运行时被改变。  
 
@@ -103,13 +103,13 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory 。_
 
 > But examining usage on real devices, we found that only around 10% of classes ever actually have their methods changed.  
 
-“但是通过对实际设备的使用进行分析，我们发现只有大约 **10%** 的*类*真正改变了它们的 *Methods* 。”  
+“但是通过对实际设备的使用进行分析，我们发现只有大约 **10%** 的*类*真正改变了它们的**方法列表** 。”  
 
 并且 `demangled` 只被 *Swift class* 使用了，并且只有当 *Swift class* 需要知道它们对应的 *Objective-C* 名称时，才需要用到它。
 
 因此，我们可以把 `class_rw_t` 拆成两部分，将不常使用的部分拆分出去、放在名为 `class_rw_ext_t` 的新结构中。  
 
-对于确实需要*附加信息*的类，我们才创建 `class_rw_ext_t` 、并将其放入类中使用。  
+对于确实需要*附加信息*的*类*，我们才创建 `class_rw_ext_t` 、并将其放入*类*中使用。  
 
 ![](/images/2021/runtime-class_rw_ext_t-1.jpg)
 
@@ -145,7 +145,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 ## 使用 Runtime APIs
 
-我们应该使用 *Runtime* 暴露出来的 *API* ，苹果保障它们的稳定性。比如：  
+我们应该使用 *Runtime* 暴露出来的 *API* ，*Apple* 保障它们的稳定性。比如：  
 
 - `class_getName`
 - `class_getSuperclass`
