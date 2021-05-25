@@ -296,7 +296,7 @@ type summary delete Travel.Trip
 
 优势：  
 
-- 可以使用 Python 进行任意的计算
+- 可以使用 *Python* 进行任意的计算
 - Full access to *LLDB's Python API*
 
 ## 简介
@@ -462,8 +462,8 @@ type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvi
 
 **有效**：  
 
-- 重新 Run 项目
-- 关闭 project 后重新打开
+- 重新 *Run* 项目
+- 关闭 *Project* 后重新打开
 
 **失效**：  
 
