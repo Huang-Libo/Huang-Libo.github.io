@@ -8,9 +8,9 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 
 [WWDC 2020 / 10163](https://developer.apple.com/videos/play/wwdc2020/10163/) 介绍了 *2020* 年 *Objective-C Runtime* 的一些优化，演讲者来自 *Languages and Runtimes team* 。内容包含：  
 
-- *Class Data Structure* 的优化：从 `class_rw_t` 中拆分出一个新类型 `class_rw_ext_t` ；
-- 在引入的 *Binary Image* 中使用 **Reletive Method Lists** ；
-- *ARM64* 架构上 **Tagged Pointer** 格式的变化。
+1. *Class Data Structure* 的优化：从 `class_rw_t` 中拆分出一个新类型 `class_rw_ext_t` ；
+2. 在引入的 *Binary Image* 中使用 **Reletive Method Lists** ；
+3.  *ARM64* 架构上 **Tagged Pointer** 格式的变化。
 
 经过优化后：
 
@@ -157,3 +157,120 @@ heap WeChat | egrep 'class_rw|COUNT'
 ![](/images/2021/runtime-class_rw_ext_t-error.jpg)
 
 比如，代码直接去 `class_rw_t` 中读取 *Methods* ，在 *iOS 13* 上是可行的，但在 *iOS 14* 上 `class_rw_t` 中已经没有了 *Methods* ，它被挪动到了 `class_rw_ext_t` 中。  
+
+# 2. Reletive Method Lists
+
+在引入的 *Binary Image* 中使用 **Reletive Method Lists** 。  
+
+*Runtime* 使用 *Method Lists* 来解析 *message sends* 。
+
+![](/images/2021/runtime-method-list.jpg)
+
+每个 method 包含三个部分信息：  
+
+method's name
+: 也称之为 **selector** ，对应 `SEL` 类型。*selectors* 是 *Strings* ，但是它们是唯一的，所以可以通过 *pointer* 检测是否相同。
+
+method's type encoding
+: 是 `char *` 类型的，代表 *parameters* 和 *return value* 的类型。它不是用于消息发送的，但 *Runtime* 内省( *introspection* )和消息转发( *message forwarding* )等事情需要它。
+
+method's implementation
+: 对应 `IMP` 类型，一个指针指向 *method* 的实现的指针( *the actual code for the method* ) 。我们编写的 *Objective-C method* 会被编译成 *C function* ，其中包含 *Objective-C method* 的实现，然后 *method list* 中的相应条目指向这个 *function* 。
+
+以 init 方法为例：  
+
+*method list* 中的这三项内容都是*指针*类型。  
+
+在 **64位** 系统中，这三个*指针*共占 **24 Bytes** ：  
+
+![Desktop View](/images/2021/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
+
+是 clean memory ，但 clean memory 也不是免费的，它仍然需要从 disk 加载，并在使用时占用 memory 。
+
+Now here's a zoomed out view of the memory within a process.
+
+![](/images/2021/runtime-normal-binary-images-in-memory.jpg){: .normal width="200"}
+
+There's this big address space that requires 64 bits to address.
+
+有一个很大的地址空间需要64位来寻址。
+
+Within that address space, various pieces are carved out for the **stack**, the **heap**, and the **executables** and **libraries** or **binary images** *loaded* into the *process*, shown here in *blue*.
+
+在该地址空间中，为堆栈、堆、可执行程序和库或二进制图像(这里用蓝色表示)划分了不同的部分。
+
+## Method List in Binary Images
+
+### 使用普通方法列表
+
+![](/images/2021/runtime-normal-method-list.jpg)
+
+### 使用相对方法列表
+
+![](/images/2021/runtime-relative-method-list.jpg)
+
+ithin that address space, various pieces are carved out for the stack, the heap, and the executables and libraries or binary images loaded into the process, shown here in blue.
+
+
+
+![](/images/2021/runtime-method-pointer-size-32bit.jpg)
+
+Xcode 在新系统上生成新版本的 method list ，在旧版系统上生成旧的。
+
+![](/images/2021/runtime-relative-method-list-swizzling.jpg)
+
+![](/images/2021/runtime-relative-method-list-error.jpg)
+
+**When Xcode knows that it doesn't need to support older OS versions, it can often emit better optimized code or data.**
+
+不要直接使用 Runtime 的私有类型，否则在新系统上这些私有类型的 layout 变化后，会导致 crash
+
+使用 Runtime APIs
+
+- `method_getName`
+- `method_getTypeEncoding`
+- `method_getImplementation`
+
+# 3. Tagged Pointer 格式的变化
+
+ARM64 架构上 Tagged Pointer 格式的变化
+
+在实际的 object pointer 中，只有中间的  被使用
+
+低位的 3 个 0 用于内存对齐，object 的地址必须是 pointer size 的整数倍
+
+高位的不需要，
+
+Tagged pointer on Intel
+
+图片
+
+## ARM64 上的 Tagged Pointer
+
+a tiny optimization for objc_msgSend
+
+## 改变
+
+Our existing tools, like the dynamic linker, ignore the top eight bits of a pointer due to an ARM feature called Top Byte Ignore
+
+这样改的好处：可以指向一些常量的地址，dirty memories ，比如 String 或者其他自定义的类型的。
+
+用一个 判断就能处理 tagged pointer 和 nil ，减少了 switch case
+
+don't rely on these internal details
+
+# 小结
+
+So, let's wrap up.
+ In this talk, we've seen a few of the behind-the-scenes improvements that have shrunk the overhead of our runtime, leaving more memory available to you and your users.
+You get these improvements without having to do anything except, maybe, consider raising your deployment target.
+To help us make these improvements each year, just follow a simple rule.
+Don't read internal bits directly.
+ Use the APIs.
+
+## 相关资料
+
+- [讲稿（字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/WWDC-2020/10163-OC-Runtime-Changes/Transcript-Edited.md)
+
+- 资料库：[https://github.com/Bob-Playground/WWDC-Stuff](https://github.com/Bob-Playground/WWDC-Stuff)
+Travel 工程也可以转入到这里。
