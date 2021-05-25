@@ -6,6 +6,12 @@
 
 https://jekyllrb.com/
 
+# 下载 & 安装依赖
+
+重要：将仓库 *clone* 到**路径中不含空格**的目录中，以规避 `http_parser.rb` **0.6.0** 版本的 bug。  
+
+在项目根目录下执行 `bundle install` 。
+
 # Jekyll 启动本地 server
 
 方法一：在 `vscode` 内使用 [Jekyll Run](https://marketplace.visualstudio.com/items?itemName=Dedsec727.jekyll-run) 插件一键启动。  
