@@ -1,7 +1,7 @@
 ---
 title:  "ObjC 中 selector, method, message 的区别"
 categories: [攻城狮, iOS Dev Tips]
-tags: [iOS, Runtime]
+tags: [iOS, Objective-C Runtime]
 ---
 
 有点晚了, 先占个坑待填.
