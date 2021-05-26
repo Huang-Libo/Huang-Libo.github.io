@@ -88,7 +88,7 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 
 快捷键：  
 
-- 预览：`cmd + K ，V`
+- 预览：<kbd>Command</kbd> + <kbd>K</kbd> ，<kbd>V</kbd>
 
 ## Markdown All in One
 
@@ -97,8 +97,8 @@ https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
 功能：  
 
 - 快捷键
-  - 加粗：`cmd + B`
-  - 斜体：`cmd + I`
+  - 加粗：<kbd>Command</kbd> + <kbd>B</kbd>
+  - 斜体：<kbd>Command</kbd> + <kbd>I</kbd>
 - 添加图片时有路径自动补全
 - 预览
 
