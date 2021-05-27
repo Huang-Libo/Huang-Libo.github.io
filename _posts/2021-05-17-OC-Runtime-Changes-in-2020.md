@@ -155,3 +155,33 @@ heap WeChat | egrep 'class_rw|COUNT'
 ![](/images/2021/runtime-class_rw_ext_t-error.jpg)
 
 比如，代码直接去 `class_rw_t` 中读取 *Methods* ，在 *iOS 13* 上是可行的，但在 *iOS 14* 上 `class_rw_t` 中已经没有了 *Methods* ，它被挪动到了 `class_rw_ext_t` 中。  
+
+# 2. Reletive Method Lists
+
+> 在引入的 *Binary Image* 中使用 **Reletive Method Lists** 。  
+
+每个类都有一个附属的*方法类表( Method Lists )* 。当你给一个类写了一个新方法，它会被添加到这个列表中。  
+
+*Runtime* 使用 *Method Lists* 来解析 *message sends* 。
+
+## Objective-C 方法的 3 个部分  
+
+![](/images/2021/runtime-method-list.jpg)
+_每个 Objective-C 方法都由 3 个部分构成_
+
+method's name
+: 也称之为*选择子( selector )* ，对应 `SEL` 类型。选择子就是*字符串( *Strings* )* ，但是它们是唯一的，所以可以通过 *pointer* 检测是否相同。
+
+method's type encoding
+: 是 `char *` 类型的，表示*参数( parameters )* 和*返回值(return types)* 的类型。它不用于消息发送，但 *Runtime* 内省( *introspection* )和消息转发( *message forwarding* )等事情需要它。
+
+method's implementation
+: 对应 `IMP` 类型，表示一个指向 *method* 的实现的指针( *the actual code for the method* ) 。我们编写的 *Objective-C* 方法会被编译成 *C* 函数，其中包含 *Objective-C* 方法的实现，然后 *method list* 中的相应条目指向这个函数。
+
+## 以 init 方法为例
+
+*method list* 中的这 3 项内容都是*指针*类型。  
+
+这意味着在**64位**系统中，每个*方法条目( method table entry )* 占用**24字节**：  
+
+![Desktop View](/images/2021/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
