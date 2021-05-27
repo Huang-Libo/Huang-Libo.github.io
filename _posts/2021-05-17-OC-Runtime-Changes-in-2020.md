@@ -38,7 +38,7 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 
 # 1. 新增类型：class_rw_ext_t
 
-在 *iOS 14* 的 *Class Data Structure* 中新增了 `class_rw_ext_t` 类型。  
+> 在 *iOS 14* 的 *Class Data Structure* 中新增了 `class_rw_ext_t` 类型。  
 
 我们先看看 *iOS 13* 的 *Runtime* 是如何运行的。  
 
