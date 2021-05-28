@@ -186,3 +186,35 @@ method's implementation
 
 ![Desktop View](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
 
+## 进程中内存的划分
+
+上述内容属于 *clean memory* ，但 *clean memory* 也不是免费的。它仍然需要从 *disk* 加载，并在使用时占用 *memory* 。
+
+这是进程中*内存*的放大视图：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-normal-binary-images-in-memory.jpg){: .normal width="200"}
+
+这个地址空间很大，需要使用**64位**来寻址。在这个地址空间中，内存被划分成了多个部分：  
+
+- *栈( stack )*
+- *堆( heap )*
+- *可执行程序( executables )*
+- 加载到进程中的*库( libraries )*或*二进制映象( binary images )* (上图**蓝色**部分)
+
+## 使用普通的方法列表( Method Lists )
+
+仍然以 `init` 方法为例，我们放大来看其中一个 *binary image* ：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-normal-method-list.jpg)
+
+我们可以看到，方法列表中的 3 个指针指向了*二进制文件*中的地址。这给我们展现了额外的消耗：  
+
+- 一个 *binary image* 可以被加载到 *memory* 的任何地方，具体加载到哪由*链接器(dynamic linker)* 决定。  
+- 这意味着*链接器*需要解析指向 *binary image* 的指针，并且在加载 *binary image* 的时候将指针修改为他们在内存中的实际地址。这也有成本。  
+
+但是请注意，*binary image* 中的类的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
+
+这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己 *binary image* 中的方法，而这些方法总是在附近。  
+
+因此，*method list entries* 可以在 *binary image* 中使用**32位**的*相对偏移量( relative offset )* ，而不是**64位**的*绝对地址*。
+
