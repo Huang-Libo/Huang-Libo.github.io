@@ -50,7 +50,7 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 
 *类对象*和 `class_ro_t` 的示意图：  
 
-![](/images/2021/runtime-class_ro_t.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_ro_t.jpg)
 
 *Swift 类* 和 *Objective-C 类* 共用这个基础设施( *infrastructure* )，因此每个 *Swift 类* 也有这些结构。  
 
@@ -74,7 +74,7 @@ Dirty Memory
 
 当*类***第一次使用时**，*Runtime* 创建了一个额外的类型，叫做 `class_rw_t` ，**rw** 代表 **read/write**（可读可写）。  
 
-![](/images/2021/runtime-class_rw_t.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_t.jpg)
 _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
 在 `class_rw_t` 中，存储在 *Runtime* 期间生成的信息。  
@@ -109,9 +109,9 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
 对于确实需要*附加信息*的*类*，我们才创建 `class_rw_ext_t` 、并将其放入*类*中使用。  
 
-![](/images/2021/runtime-class_rw_ext_t-1.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-1.jpg)
 
-![](/images/2021/runtime-class_rw_ext_t-2.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-2.jpg)
 
 > Approximately 90% of classes never need this extended data, saving around 14 megabytes system wide.  
 
@@ -127,7 +127,7 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 heap Mail | egrep 'class_rw|COUNT'
 ```
 
-![](/images/2021/runtime-class_rw_ext_t-heap-Mail.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-heap-Mail.jpg)
 
 *Mail* 中只有约 **10%** 的类使用了 `class_rw_ext_t` 。
 
@@ -137,7 +137,7 @@ heap Mail | egrep 'class_rw|COUNT'
 heap WeChat | egrep 'class_rw|COUNT'
 ```
 
-![](/images/2021/runtime-class_rw_ext_t-heap-WeChat.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-heap-WeChat.jpg)
 
 *WeChat* 中只有约 **8%** 的类使用了 `class_rw_ext_t` 。
 
@@ -152,7 +152,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 而不要在代码中直接使用 *Runtime* 的这些私有类型，否则新系统更新了这些类型的 *layout*，代码就无法正常运行。  
 
-![](/images/2021/runtime-class_rw_ext_t-error.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-error.jpg)
 
 比如，代码直接去 `class_rw_t` 中读取 *Methods* ，在 *iOS 13* 上是可行的，但在 *iOS 14* 上 `class_rw_t` 中已经没有了 *Methods* ，它被挪动到了 `class_rw_ext_t` 中。  
 
@@ -166,7 +166,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 ## Objective-C 方法的 3 个部分  
 
-![](/images/2021/runtime-method-list.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-method-list.jpg)
 _每个 Objective-C 方法都由 3 个部分构成_
 
 method's name
@@ -184,4 +184,5 @@ method's implementation
 
 这意味着在**64位**系统中，每个*方法条目( method table entry )* 占用**24字节**：  
 
-![Desktop View](/images/2021/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
+![Desktop View](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
+
