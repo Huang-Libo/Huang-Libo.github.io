@@ -51,7 +51,7 @@ tags: [iOS, 定时器, NSTimer, NSProxy]
 
 在上述代码中，`viewController` 强引用了 `timer`，`timer` 又强引用了 `target` (即 `viewController`)，形成了循环引用：
 
-![](/images/2021/NSTimer-circular-reference-1.png)
+![](/images/2021/NSTimer-circular-reference-1.png){: .normal}
 
 由于 `timer` 强引用了 `viewController`，所以即使从 `viewController` 页面退出后，其引用计数也大于 0，导致 `viewController` 的 `dealloc` 方法不会执行，因此 `dealloc` 里的 `[self.timer invalidate]` 也就无法执行了。
 
@@ -93,7 +93,7 @@ self.timer = [NSTimer timerWithTimeInterval:1 repeats:YES block:^(NSTimer * _Non
 
 关系图如下（虚线代表弱引用）：
 
-![](/images/2021/NSTimer-circular-reference-2.png)
+![](/images/2021/NSTimer-circular-reference-2.png){: .normal}
 
 先添加 `NSProxy` 的子类 `LBWeakProxy`：  
 
