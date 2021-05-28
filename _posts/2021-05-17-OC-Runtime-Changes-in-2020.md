@@ -17,7 +17,7 @@ tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tag
 - **Less memory usage**（减少了内存的使用）
 - **Smaller binaries**（二进制包更小）
 
-由于疫情影响，*WWDC 2020* 完全是线上举办的，官网上也没有给出演示 *PDF* ，只有[讲稿（即字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/WWDC-2020/10163-OC-Runtime-Changes/Transcript-Edited.md)。
+由于疫情影响，*WWDC 2020* 完全是线上举办的，官网上也没有给出演示 *PDF* ，只有[讲稿（即字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2020/10163-OC-Runtime-Changes/Transcript-Edited.md)。
 
 # 新特性的适配
 
