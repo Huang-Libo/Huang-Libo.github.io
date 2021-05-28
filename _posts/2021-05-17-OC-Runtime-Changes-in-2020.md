@@ -1,7 +1,7 @@
 ---
 title: "【iOS 14】Objective-C Runtime 的优化"
 categories: [攻城狮, WWDC]
-tags: [WWDC, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tagged Pointer]
+tags: [WWDC, WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List, Tagged Pointer]
 ---
 
 # 前言
