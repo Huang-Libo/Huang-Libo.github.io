@@ -9,7 +9,7 @@ tags: [WWDC, WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Metho
 [WWDC 2020 / 10163](https://developer.apple.com/videos/play/wwdc2020/10163/) 介绍了 *2020* 年 *Objective-C Runtime* 的一些优化，演讲者来自 *Languages and Runtimes team* 。内容包含：  
 
 1. *Class Data Structure* 的优化：从 `class_rw_t` 中拆分出一个新类型 `class_rw_ext_t` ；
-2. 在引入的 *Binary Image* 中使用 **Reletive Method Lists** ；
+2. 在引入的*二进制映像( Binary Image )* 中使用**相对方法列表( Reletive Method Lists )** ；
 3.  *ARM64* 架构上 **Tagged Pointer** 格式的变化。
 
 经过优化后：
