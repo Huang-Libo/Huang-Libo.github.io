@@ -80,7 +80,7 @@ expression -O -- cruise
 help expression
 ```
 
-![](/images/2021/lldb-help.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-help.jpg)
 
 ### 创建自定义的 alias
 
@@ -100,7 +100,7 @@ my_po cruise
 
 po 的执行流程如下，假如用户输入了 `po view` ：
 
-![](/images/2021/lldb-po-1.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-po-1.jpg)
 
 此例中，LLDB 为 `po` 生成两次代码并编译、执行，最后展示相应的 description。
 
@@ -151,7 +151,7 @@ expression cruise
 
 ### p 的原理
 
-![](/images/2021/lldb-p-1.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-p-1.jpg)
 
 `p` 的前半部分过程与 `po` 一样，生成获取对象的代码并获取对象。不一样的地方是，`p` 拿到 **result** 后，会对 **result** 做 **动态类型解析（Dynamic type resolution）**。我们来看一个例子，把之前的代码稍作改动：
 
@@ -172,7 +172,7 @@ let cruise: Activity = Trip(
 
 再输入 `p cruise` 和 `p cruise.name`：
 
-![](/images/2021/lldb-p-2.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-p-2.jpg)
 
 可以看到，`p cruise` 的输出和之前一样，打印出了 `cruise` 的真实类型 `Trip`。这是因为 LLDB 在拿到 **result** 后对其做了**动态类型解析**。
 
@@ -186,13 +186,13 @@ let cruise: Activity = Trip(
 expression --raw -- cruise
 ```
 
-![](/images/2021/lldb-expression-raw.jpg){: .normal}
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-expression-raw.jpg){: .normal}
 
 ## LLDB 常用命令三：v
 
 在上面的例子中，我们需要强制转换 `cruise` 的类型，才能打印 `name`。其实 LLDB 的 `v` 命令，可以更便捷地完成这项任务：
 
-![](/images/2021/lldb-v-1.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-v-1.jpg)
 
 从输出我们可以看到，`v cruise` 的输出和 `p cruise` 类似。但是，`p cruise.name` 报错了，而 `v cruise.name` 能正常打印 name。
 
@@ -206,7 +206,7 @@ frame variable cruise
 
 ### v 的原理
 
-![](/images/2021/lldb-v-2.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-v-2.jpg)
 
 从上图可以看出，`v` 并不生成代码来编译和执行，而是先直接从内存中读取值，再进行 **动态类型解析**。如果有 **subfields**，则循环这两步，直到拿到最终的值。  
 
@@ -216,7 +216,7 @@ frame variable cruise
 
 ## po，p，v 的使用场景
 
-![](/images/2021/lldb-compare-po-p-v.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-compare-po-p-v.jpg)
 
 小结：  
 
@@ -257,7 +257,7 @@ type filter delete Travel.Trip
 
 *Xcode Variables* 界面中会显示变量的 *Summary* ：  
 
-![](/images/2021/lldb-xcode-variable-1.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-xcode-variable-1.jpg)
 
 可以看出，`name` (`String`) 和 `destinations` (`Array`) 这两个系统类型的变量都显示了 *Summary* ，而自定的 `Trip` 类型的 `cruise` 变量没有显示 *Summary* 。  
 
@@ -278,7 +278,7 @@ type summary add Travel.Trip --summary-string "${var.name} from ${var.destinatio
 
 下次进入断点时，*Xcode Variables* 界面中也会显示 `cruise` 变量的 *Summary* ：
 
-![](/images/2021/lldb-xcode-variable-2.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-xcode-variable-2.jpg)
 
 删除 Summary ：
 
@@ -306,7 +306,7 @@ type summary delete Travel.Trip
 
 *LLDB Scripting Bridge API* 中的常用类型：  
 
-![](/images/2021/lldb-scripting-bridge.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-scripting-bridge.jpg)
 
 ## 在 Xcode Console 的交互界面中使用 Python
 
@@ -420,7 +420,7 @@ type summary add Travel.Trip --python-function Trip.SummaryProvider
 
 除了 *Xcode Console* ，*Xcode Variables* 界面中也显示了自定义 *Formatter* 的内容：
 
-![](/images/2021/lldb-xcode-variable-3.jpg)
+![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-xcode-variable-3.jpg)
 
 ## Synthetic Children
 
