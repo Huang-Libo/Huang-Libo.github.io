@@ -232,5 +232,25 @@ method's implementation
 
 现在*方法列表*中的每一个方法的信息只占用**12字节**。
 
-我们在一个典型的 *iPhone* 做了测量，在系统范围内的这些方法大约占用了 **80MB** 。由于我们将它们减半了，所以节省了 **40MB** 。
+> We've measured about 80MB of these methods system wide on a typical iPhone. Since they're half the size, we save 40 megabytes.
+
+“我们在一个典型的 *iPhone* 做了测量，在系统范围内的这些方法大约占用了 **80MB** 。由于我们将它们减半了，所以节省了 **40MB** 。”
+
+## Swizzling relative method lists
+
+使用了*相对方法列表*后，就不能使用完整的地址空间了。但是如果对一个方法做了 *Swizzling* ，那么这个方法的实现将会出现在任何地方。而且刚才我们提到要把 *binary image* 的*方法列表*设置为*只读*的。  
+
+为了处理这种场景，*iOS 14* 的 *Runtime* 使用了一个*全局表( global table )* 映射*方法*到它们的 *Swizzling* *实现*。
+
+实际上，*Swizzling* 很少。绝大多数*方法*实际上从来没有被 *Swizzling* ，所以这个 *table* 最终不会变得很大。  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list-swizzling.jpg)
+
+> Even better, the table is compact. Memory is dirtied a page at a time.
+
+更好的是，这个 *table* 很小巧。每次只“污染”内存的一*页( page )* 。  
+
+- 在使用旧风格的*方法列表*时，*Swizzling* 一个方法会污染它所在的*全部页( entire page )*，一次 *Swizzling* 会导致*很多KB( kilobytes )* 的脏内存。
+- 在使用 *global table* 后，我们只需要付出一个额外的*表条目( table entry )* 的成本。
+
 
