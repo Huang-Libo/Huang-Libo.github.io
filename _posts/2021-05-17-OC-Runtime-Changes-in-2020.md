@@ -6,7 +6,7 @@ tags: [WWDC, WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Metho
 
 # 前言
 
-[WWDC 2020 / 10163](https://developer.apple.com/videos/play/wwdc2020/10163/) 介绍了 *2020* 年 *Objective-C Runtime* 的一些优化，演讲者来自 *Languages and Runtimes team* 。内容包含：  
+[WWDC 2020 / 10163](https://developer.apple.com/videos/play/wwdc2020/10163/) 介绍了 *2020* 年 *Objective-C Runtime* 的一些优化，演讲者来自 *Languages and Runtimes Team* 。内容包含：  
 
 1. *Class Data Structure* 的优化：从 `class_rw_t` 中拆分出一个新类型 `class_rw_ext_t` ；
 2. 在引入的*二进制映像( Binary Image )* 中使用**相对方法列表( Reletive Method Lists )** ；
@@ -97,7 +97,7 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
 那我们怎样把它们缩小呢？
 
-还记得吗，我们之所以在“读/写部分”需要这些东西，是因为它们可以在运行时更改。
+还记得吗，我们之所以在“读/写部分”需要这些东西，是因为它们可以在*运行时*更改。
 
 > But examining usage on real devices, we found that only around 10% of classes ever actually have their methods changed.  
 
@@ -160,9 +160,9 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 > 在引入的 *Binary Image* 中使用 **Reletive Method Lists** 。  
 
-每个类都有一个附属的*方法类表( Method Lists )* 。当你给一个类写了一个新方法，它会被添加到这个列表中。  
+每个*类*都有一个附属的*方法列表( Method List )* 。当你给一个*类*写了一个新方法，它会被添加到这个列表中。  
 
-*Runtime* 使用*方法列表*来解析 *message sends* 。
+*Runtime* 使用*方法列表*来解析*消息发送( message sends )* 。
 
 ## Objective-C 方法的 3 个部分  
 
@@ -173,16 +173,16 @@ method's name
 : 也称之为*选择子( selector )* ，对应 `SEL` 类型。选择子就是*字符串( Strings )* ，但是它们是唯一的，所以可以通过*指针*检测是否相同。
 
 method's type encoding
-: 是 `char *` 类型的，表示*参数( parameters )* 和*返回值(return types)* 的类型。它不用于消息发送，但 *Runtime* 内省( *introspection* )和消息转发( *message forwarding* )等事情需要它。
+: 是 `char *` 类型的，表示*参数( parameters )* 和*返回值(return types)* 的类型。它不用于*消息发送( message sends )*，但 *Runtime* 内省( *introspection* )和消息转发( *message forwarding* )等事情需要它。
 
 method's implementation
-: 对应 `IMP` 类型，表示一个指向*方法实现*的指针( *the actual code for the method* ) 。我们编写的 *Objective-C* 方法会被编译成 *C* 函数，它包含 *Objective-C* 方法的实现，然后 *method list* 中的相应条目指向这个函数。
+: 对应 `IMP` 类型，表示一个指向*方法实现*的指针( *the actual code for the method* ) 。我们编写的 *Objective-C* 方法会被编译成 *C* 函数，它包含 *Objective-C* 方法的实现，然后*方法列表*中的相应条目指向这个函数。
 
 ## 以 init 方法为例
 
 *方法列表*中的这 3 项内容都是*指针*类型。  
 
-这意味着在**64位**系统中，每个*方法条目( method table entry )* 占用**24字节**：  
+这意味着在**64位**系统中，*方法列表*中每一个方法的信息占用**24字节**：  
 
 ![Desktop View](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-method-pointer-size-64bit.jpg){: .normal width="400"}
 
@@ -212,7 +212,7 @@ method's implementation
 - 一个 *binary image* 可以被加载到 *memory* 的任何地方，具体加载到哪由*链接器(dynamic linker)* 决定。  
 - 这意味着*链接器*需要解析指向 *binary image* 的指针，并且在加载 *binary image* 的时候将指针修改为他们在内存中的实际地址。这也有成本。  
 
-但是请注意，*binary image* 中的类的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
+但是请注意，*binary image* 中的类的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把某方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
 
 这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己 *binary image* 中的方法，而这些方法总是在附近。  
 
