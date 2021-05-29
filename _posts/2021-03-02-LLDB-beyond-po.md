@@ -280,7 +280,7 @@ type summary add Travel.Trip --summary-string "${var.name} from ${var.destinatio
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-xcode-variable-2.jpg)
 
-删除 Summary ：
+删除 *Summary* ：
 
 ```lldb
 type summary delete Travel.Trip
