@@ -257,4 +257,16 @@ method's implementation
 - 在使用旧风格的*方法列表*时，*Swizzling* 一个方法会污染它所在的*全部页( entire page )*，一次 *Swizzling* 会导致*很多KB( kilobytes )* 的脏内存。
 - 在使用 *global table* 后，我们只需要付出一个额外的*表条目( table entry )* 的成本。
 
+## deployment target
+
+如果使用相符的 *minimum deployment target* （至少 *iOS 14*）构建项目，那么 *Xcode* 会自动为构建的二进制包生成 *relative method lists* 。  
+
+如果需要支持旧的系统版本，*Xcode* 会生成旧风格的 *method list* 。
+
+> You still get the benefit from the OS itself being built with the new relative method lists, and the system has no problem with both formats in use in the same app at the same time.
+
+“你仍然可以从使用新的 *relative method lists* 构建的操作系统中获得好处，并且系统在同一 *APP* 中同时使用两种格式没有问题。” 
+
+但是，如果把项目的 *minimum deployment target* 指定为今年发布的系统版本( *iOS 14* )，那么生成的二进制包更小、使用时占用的内存更小( **smaller binaries** and **less memory usage** )。这对 *Objective-C* 或 *Swift* 项目都是一个很好的建议。当 *Xcode* 知道它不需要支持旧的系统版本时，它通常可以生成优化地更好的代码或数据。  
+
 
