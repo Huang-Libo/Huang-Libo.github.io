@@ -234,7 +234,11 @@ method's implementation
 
 > We've measured about 80MB of these methods system wide on a typical iPhone. Since they're half the size, we save 40 megabytes.
 
-“我们在一个典型的 *iPhone* 做了测量，在系统范围内的这些方法大约占用了 **80MB** 。由于我们将它们减半了，所以节省了 **40MB** 。”
+“我们在一个典型的 *iPhone* 做了测量，在系统范围内的这些方法大约占用了 **80MB** 。由于我们将它们减半了，所以节省了 **40MB** 。”  
+
+为了体现出优化效果明显，PPT 里还播放了一个震撼的动画。和其他厂的宣传 PPT 不同的是，这个没有搭配震撼的音效 [手动狗头]：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list-saving-memory.jpg){: .normal width="500"}
 
 ## Swizzling relative method lists
 
