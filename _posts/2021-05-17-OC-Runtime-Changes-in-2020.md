@@ -291,4 +291,66 @@ method's implementation
 - `method_getImplementation`
 - ...
 
+# 3. ARM64 架构上 Tagged Pointer 格式的变化
+
+## 普通的对象指针
+
+我们先看看普通的*对象指针( object pointer )* 的结构。  
+
+普通的*对象指针*通常用很大的*十六进制( hexadecimal )* 数字表示。下面我们把它分解成*二进制(binary)* 表示：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-normal-object-pointer.jpg)
+
+在实际的*对象指针*中，只有中间的 bit 被使用了。
+
+- *低 3 位*的值总是 0 ，因为**内存需要对齐：对象的地址值必须是指针大小的整数倍**。
+- *高 16 位*的值总是 0 ，因为需要的地址空间有限，实际上我们没有一直算到 **2^64** 。
+
+可以看出，普通的*对象指针*的*低 3 位*和*高 16 位*一直是 0 。
+
+## Tagged pointer on Intel
+
+在**64位** *Intel* 平台的 *Mac* 上，如果把第一个 *bit* 设置为 1 ，就代表这个指针不是普通的*对象指针*，而是 *tagged pointer* ：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-1.jpg)
+
+在上图中，我们创建了一个值为 42 的 *NSNumber* 。42 对应的二进制数是 101010 ，这个二进制数被放入了 *tagged pointer* 的第 5 至 10 位。  
+
+只要我们（指 *Runtime* 的开发者）教 `NSNumber` 如何读取这些*位*，并教 *Runtime* 正确处理 *tagged pointer* ，系统的其余部分就可以把这些东西当作*对象指针*，永远不知道其中的区别。  
+
+这节省了我们为很小的数值分配对象的开销，性能肯定会更好。
+
+### 混淆 tagged pointer 的值  
+
+我们获取到的 *tagged pointer* 的值是做了混淆的。*Runtime* 使用*进程启动时*创建的*随机值*与 *tagged pointer* 的值做了结合。这是一种安全措施，使 *tagged pointer* 难以被伪造。  
+
+所以，如果开发者尝试去读取内存中 *tagged pointer* 的值，获取到的将是被混淆的值。  
+
+### tag type 和 payload
+
+接下来的 3 *bit* 代表 *tagged pointer* 的*类型*。比如 3(0B011) 代表 `NSNumber` ，6(0B110) 代表 `NSDate` 。  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-2.jpg)
+
+因为有 3 *bit* ，说明可以表示 8 种类型(0-7)。  
+
+剩下的 *bit* 是 *payload* ，用来存储值。对于 *tagged* `NSNumber` 来说， *payload* 存储的就是实际的数值。  
+
+### extended tag
+
+tag 7 (0B111) 是一个特殊的 case ，它代表要使用 *extended tag* 。  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-3.jpg)
+
+*extended tag* 使用接下来的 8 *bit* 来编码类型，允许以更小的 *payload* 为代价，以使用 256 种以上的 *tag* 类型。比如 *tagged* `UIColor`、*tagged* `NSIndexSet`。  
+
+### Swift 中的 tagged pointer
+
+只有 *Apple Runtime* 的开发人员才能添加 *tagged pointer* 类型。  
+
+但是在 Swift 开发中，可以创建自己的 *tagged pointer* 类型。比如，*Swift Runtime* 将*枚举标识符( enum discriminator )* 存储在*关联值( associated value )* *payload* 的*空余位( spare bits )* 中。  
+
+更重要的是，*Swift* 对*值类型*的使用实际上降低了 *tagged pointer* 的重要性，because values no longer need to be exactly pointer sized（???）。  
+
+例如，一个 *Swift* `UUID` 类型可以是两个单词并且*内联( inline )* 保存，而不是分配一个单独的对象，因为它不适合放在指针中（???）。  
 
