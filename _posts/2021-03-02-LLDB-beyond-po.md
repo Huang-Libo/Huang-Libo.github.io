@@ -1,7 +1,7 @@
 ---
 title: "《LLDB: Beyond \"po\"》：po、p、v 命令；自定义 Data Formatter；Python 脚本在 LLDB 中的使用"
 categories: [攻城狮, WWDC]
-tags: [WWDC, WWDC 2019, iOS, LLDB]
+tags: [WWDC 2019, iOS, LLDB]
 ---  
 
 # 前言
