@@ -271,12 +271,12 @@ method's implementation
 
 ## Mismatched deployment targets
 
-假设我们有两个产品：
+假设我们有两个项目：
 
-1. *minimum deployment target* 指定为 *iOS 14* 的 Framework ，Xcode 在构建它时，会使用 *relative method lists* ；
-2. *minimum deployment target* 指定为 *iOS 13* 的 *APP* ，Xcode 在构建它时，会使用旧格式的 *method lists* 。
+1. 一个把 *minimum deployment target* 指定为 *iOS 14* 的 Framework ，Xcode 在构建它时，会使用 *relative method lists* ；
+2. 一个把 *minimum deployment target* 指定为 *iOS 13* 的 *APP* ，Xcode 在构建它时，会使用旧格式的 *method lists* 。
 
-如果我们把上述 Framework 集成到上述 APP 中，在 iOS 13 上运行 APP 会出现问题。由于旧的系统版本没有处理 *relative method lists* 的机制，所以会读取两个**32位**的指针、当成一个**64位**指针使用。  
+如果我们把上述 Framework 集成到上述 APP 中，在 iOS 13 系统上运行此 *APP* 会出现问题。由于旧的系统版本没有处理 *relative method lists* 的机制，所以会读取两个**32位**的指针、当成一个**64位**指针使用。  
 
 这意味着两个独立的指针被合并成了一个值无效的指针，使用时肯定会导致 *crash* 。
 
@@ -289,5 +289,6 @@ method's implementation
 - `method_getName`
 - `method_getTypeEncoding`
 - `method_getImplementation`
+- ...
 
 
