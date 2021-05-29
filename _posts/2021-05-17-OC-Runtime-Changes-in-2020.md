@@ -203,16 +203,16 @@ method's implementation
 
 ## 使用普通的方法列表( Method Lists )
 
-仍然以 `init` 方法为例，我们放大来看其中一个 *binary image* ：  
+仍以 `init` 方法为例，我们放大来看其中一个 *binary image* ：  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-normal-method-list.jpg)
 
 我们可以看到，方法列表中的 3 个指针指向了*二进制文件*中的地址。这给我们展现了额外的消耗：  
 
-- 一个 *binary image* 可以被加载到 *memory* 的任何地方，具体加载到哪由*链接器(dynamic linker)* 决定。  
-- 这意味着*链接器*需要解析指向 *binary image* 的指针，并且在加载 *binary image* 的时候将指针修改为他们在内存中的实际地址。这也有成本。  
+- 一个 *binary image* 可以被加载到 *memory* 的任何地方，具体加载到哪由*动态链接器(dynamic linker)* 决定。  
+- 这意味着*动态链接器*需要解析指向 *binary image* 的指针，并且在加载 *binary image* 的时候将指针修改为*方法信息*在内存中的实际地址。这也消耗性能。  
 
-但是请注意，*binary image* 中的类的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把某方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
+但是请注意，*binary image* 中的*类*的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把某方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
 
 这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己 *binary image* 中的方法，而这些方法总是在附近。  
 
