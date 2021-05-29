@@ -218,3 +218,19 @@ method's implementation
 
 因此，*method list entries* 可以在 *binary image* 中使用**32位**的*相对偏移量( relative offset )* ，而不是**64位**的*绝对地址*。
 
+## 使用相对方法列表( Reletive Method Lists )
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list.jpg)
+
+这种方案有几个优势：
+
+- 首先，无论 *binary image* 被加载到*内存*的哪个位置，*偏移量*总是相同的，所以它们不必在从*磁盘*加载后进行修正。
+- 因为它们不需要被修正，它们可以被保存在真正的*只读内存*中，这是更安全的。
+- 使用**32位**的*偏移地址*意味着我们在**64位**平台上**需要的内存减少了一半**。
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-method-pointer-size-32bit.jpg){: .normal width="400"}
+
+现在*方法列表*中的每一个方法的信息只占用**12字节**。
+
+我们在一个典型的 *iPhone* 做了测量，在系统范围内的这些方法大约占用了 **80MB** 。由于我们将它们减半了，所以节省了 **40MB** 。
+
