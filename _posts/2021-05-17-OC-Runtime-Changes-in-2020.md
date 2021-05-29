@@ -143,7 +143,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 ## 使用 Runtime APIs
 
-我们应该使用 *Runtime* 暴露出来的 *API* ，*Apple* 保障它们的稳定性。比如：  
+我们应该使用 *Runtime* 的公开 *API* ，*Apple* 保障它们的稳定性。比如：  
 
 - `class_getName`
 - `class_getSuperclass`
@@ -254,7 +254,7 @@ method's implementation
 
 更好的是，这个 *table* 很小巧。每次只“污染”内存的一*页( page )* 。  
 
-- 在使用旧风格的*方法列表*时，*Swizzling* 一个方法会污染它所在的*全部页( entire page )*，一次 *Swizzling* 会导致*很多KB( kilobytes )* 的脏内存。
+- 在使用旧格式的*方法列表*时，*Swizzling* 一个方法会污染它所在的*全部页( entire page )*，一次 *Swizzling* 会导致*很多KB( kilobytes )* 的脏内存。
 - 在使用 *global table* 后，我们只需要付出一个额外的*表条目( table entry )* 的成本。
 
 ## deployment target
@@ -268,5 +268,26 @@ method's implementation
 “你仍然可以从使用新的 *relative method lists* 构建的操作系统中获得好处，并且系统在同一 *APP* 中同时使用两种格式没有问题。” 
 
 但是，如果把项目的 *minimum deployment target* 指定为今年发布的系统版本( *iOS 14* )，那么生成的二进制包更小、使用时占用的内存更小( **smaller binaries** and **less memory usage** )。这对 *Objective-C* 或 *Swift* 项目都是一个很好的建议。当 *Xcode* 知道它不需要支持旧的系统版本时，它通常可以生成优化地更好的代码或数据。  
+
+## Mismatched deployment targets
+
+假设我们有两个产品：
+
+1. *minimum deployment target* 指定为 *iOS 14* 的 Framework ，Xcode 在构建它时，会使用 *relative method lists* ；
+2. *minimum deployment target* 指定为 *iOS 13* 的 *APP* ，Xcode 在构建它时，会使用旧格式的 *method lists* 。
+
+如果我们把上述 Framework 集成到上述 APP 中，在 iOS 13 上运行 APP 会出现问题。由于旧的系统版本没有处理 *relative method lists* 的机制，所以会读取两个**32位**的指针、当成一个**64位**指针使用。  
+
+这意味着两个独立的指针被合并成了一个值无效的指针，使用时肯定会导致 *crash* 。
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list-error.jpg)
+
+## 使用 Runtime APIs
+
+同样地，不要直接使用 *Runtime* 的私有类型，否则在新系统上这些私有类型的 layout 变化后，会导致 *crash* 。应该使用 *Runtime* 提供的公共 *API* 。
+
+- `method_getName`
+- `method_getTypeEncoding`
+- `method_getImplementation`
 
 
