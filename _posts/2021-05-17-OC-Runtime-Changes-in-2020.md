@@ -280,7 +280,7 @@ method's implementation
 
 这意味着两个独立的指针被合并成了一个值无效的指针，使用时肯定会导致 *crash* 。
 
-![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list-error.jpg)
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list-error.jpg){: .normal width="600"}
 
 ## 使用 Runtime APIs
 
