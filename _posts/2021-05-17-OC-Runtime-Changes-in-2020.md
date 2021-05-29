@@ -25,7 +25,7 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
 
 “运气好的话，你不需要做任何事情，你的应用程序就会变得更快。”  
 
-如果代码中没有依赖“隐藏”在 *Runtime* 中的内部类型（ *internal data structures* ），比如 `class_rw_t`，或直接读取 **Tagged Pointer** 的 *bit* 数据，那就不需要做改动。  
+如果代码中没有依赖“隐藏”在 *Runtime* 中的内部类型（ *internal data structures* ），比如 `class_rw_t`，或直接读取 *Tagged Pointer* 的 *bit* 数据，那就不需要做改动。  
 
 但如果 *APP* 中直接使用了这些“隐藏”的内容，*APP* 在新系统上可能会出现异常。  
 
