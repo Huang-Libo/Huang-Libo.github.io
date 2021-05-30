@@ -9,7 +9,7 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
 [WWDC 2020 / 10163](https://developer.apple.com/videos/play/wwdc2020/10163/) 介绍了 *2020* 年 *Objective-C Runtime* 的一些优化，演讲者来自 *Languages and Runtimes Team* 。内容包含：  
 
 1. *Class Data Structure* 的优化：从 `class_rw_t` 中拆分出一个新类型 `class_rw_ext_t` ；
-2. 在引入的*二进制映像( Binary Image )* 中使用**相对方法列表( Reletive Method Lists )** ；
+2. 在*二进制映像( Binary Image )* 中使用**相对方法列表( Reletive Method Lists )** ；
 3.  *ARM64* 架构上 **Tagged Pointer** 格式的变化。
 
 经过优化后：
@@ -85,7 +85,7 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
 原因是它们可以在运行时被改变。  
 
-比如，当一个分类被加载时，它可以向原类中添加新方法。程序员可以使用 *Runtime API* 动态地添加它们。  
+比如，当一个分类被加载时，它可以向原类中添加新方法。即程序员可以使用 *Runtime API* 动态地添加它们。  
 
 ## 从 class_rw_t 中拆分出 class_rw_ext_t
 
@@ -216,9 +216,9 @@ method's implementation
 
 这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己 *binary image* 中的方法，而这些方法总是在附近。  
 
-因此，*method list entries* 可以在 *binary image* 中使用**32位**的*相对偏移量( relative offset )* ，而不是**64位**的*绝对地址*。
-
 ## 使用相对方法列表( Reletive Method Lists )
+
+因此，*method list entries* 可以在 *binary image* 中使用**32位**的*相对偏移量( relative offset )* ，而不是**64位**的*绝对地址*：  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-relative-method-list.jpg)
 
@@ -303,7 +303,7 @@ method's implementation
 
 在实际的*对象指针*中，只有中间的 bit 被使用了。
 
-- *低 3 位*的值总是 0 ，因为**内存需要对齐：对象的地址值必须是指针大小的整数倍**。
+- *低 3 位*的值总是 0 ，因为**内存需要对齐：对象的地址值必须是指针大小的整数倍**。( *objects must always be located at an address that's a multiple of the pointer size.* )
 - *高 16 位*的值总是 0 ，因为需要的地址空间有限，实际上我们没有一直算到 **2^64** 。
 
 可以看出，普通的*对象指针*的*低 3 位*和*高 16 位*一直是 0 。
@@ -318,7 +318,7 @@ method's implementation
 
 只要我们（指 *Runtime* 的开发者）教 `NSNumber` 如何读取这些*位*，并教 *Runtime* 正确处理 *tagged pointer* ，系统的其余部分就可以把这些东西当作*对象指针*，永远不知道其中的区别。  
 
-这节省了我们为很小的数值分配对象的开销，性能肯定会更好。
+这节省了为较小的数值分配对象的开销，性能肯定会更好。
 
 ### 混淆 tagged pointer 的值  
 
@@ -342,7 +342,7 @@ tag 7 (0B111) 是一个特殊的 case ，它代表要使用 *extended tag* 。
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-3.jpg)
 
-*extended tag* 使用接下来的 8 *bit* 来编码类型，允许以更小的 *payload* 为代价，以使用 256 种以上的 *tag* 类型。比如 *tagged* `UIColor`、*tagged* `NSIndexSet`。  
+*extended tag* 使用接下来的 8 *bit* 来编码类型，以更小的 *payload* 为代价、来容纳 256 种新的 *tag* 类型。比如 *tagged* `UIColor`、*tagged* `NSIndexSet`。  
 
 ### Swift 中的 tagged pointer
 
