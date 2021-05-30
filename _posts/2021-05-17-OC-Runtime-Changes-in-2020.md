@@ -293,6 +293,15 @@ method's implementation
 
 # 3. ARM64 架构上 Tagged Pointer 格式的变化
 
+下文关于 *tagged pointer* 的介绍用到了几组词汇，这里先做个解释：  
+
+- **tag bit** : 共 **1 bit**，是 *tagged pointer* 的标志位；
+- **tag number** : 共 **3 bit**，代表 *tagged pointer* 的类型；
+- **extended tag** : 共 **8 bit**，代表 *tagged pointer* 的拓展类型，当 *tag number* 为 *7(0b111)* 时，就会使用 *extended tag* ；
+- **payload** : *tagged pointer* 实际存储的内容。
+  - 如果不使用 *extended tag*，*payload* 为 **60 bit**；
+  - 如果要使用 *extended tag*，*payload* 为 **52 bit**。
+
 ## 普通的对象指针
 
 我们先看看普通的*对象指针( object pointer )* 的结构。  
@@ -310,7 +319,7 @@ method's implementation
 
 ## Tagged pointer on Intel
 
-在**64位** *Intel* 平台的 *Mac* 上，如果把第一个 *bit* 设置为 1 ，就代表这个指针不是普通的*对象指针*，而是 *tagged pointer* ：  
+在**64位** *Intel* 平台的 *Mac* 上，如果把*最低位( bottom bit )* 设置为 1 ，就代表这个指针不是普通的*对象指针*，而是 *tagged pointer* ：  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-1.jpg)
 
@@ -328,7 +337,7 @@ method's implementation
 
 ### tag type 和 payload
 
-接下来的 3 *bit* 代表 *tagged pointer* 的*类型*。比如 3(0B011) 代表 `NSNumber` ，6(0B110) 代表 `NSDate` 。  
+接下来的 3 *bit* 代表 *tagged pointer* 的*类型*。比如 *3(0b011)* 代表 `NSNumber` ，*6(0b110)* 代表 `NSDate` 。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-2.jpg)
 
@@ -338,7 +347,7 @@ method's implementation
 
 ### extended tag
 
-tag 7 (0B111) 是一个特殊的 case ，它代表要使用 *extended tag* 。  
+*tag 7(0b111)* 是一个特殊的 case ，它代表要使用 *extended tag* 。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-3.jpg)
 
@@ -354,3 +363,95 @@ tag 7 (0B111) 是一个特殊的 case ，它代表要使用 *extended tag* 。
 
 例如，一个 *Swift* `UUID` 类型可以是两个单词并且*内联( inline )* 保存，而不是分配一个单独的对象，因为它不适合放在指针中（???）。  
 
+## Tagged pointer on ARM64
+
+### iOS 13 中 tagged pointer 的格式
+
+和 *Intel* 平台不同的是，在 *ARM64* 平台上使用*最高位( top bit )* 来标识 *tagged pointer* 。接下来的 *3 bits* 用于标识 tagged pointer 的类型，payload 使用剩下的 bits ：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-overview.jpg)
+
+为什么在 *ARM* 平台上用 *top bit* 代表 *tagged pointer* 呢？  
+
+实际上这是为 `objc_msgSend` 做的一个小优化。  
+
+我们希望 `objc_msgSend` 中最常见的使用方式尽可能快，而最常见的使用方式是一个普通的对象指针调用 `objc_msgSend` 。  
+
+把 *top bit* 设置为 1 ，就能在一个判断中得知这个指针是 *tagged pointer* 或 `nil` ，这简化了普通对象指针调用 `objc_msgSend` 的流程，不用分别去判断 *tagged pointer* 和 `nil`：  
+
+```c
+if (ptrValue <= 0) // is tagged or nil
+```
+
+说明：  
+
+- `nil` 对应的指针值是 `0x0` ；
+- 由于*最高位( top bit )* 是*符号位*，当最高位是 1 是，指针值是一个负数。
+
+和 *Intel* *平台类似，ARM* 上的 *tag number* *7(0b111)* 代表要把接下来的 *8 bit* 用做 *extended tag* 。剩下的 bits 给 *payload* 使用：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-old.jpg)
+
+### iOS 14 中 tagged pointer 格式的变化
+
+在 *iOS 14* 中，*tagged pointer* 的*标志位( tag bit )*还是在*最高位*，因为这个对 `objc_msgSend` 的优化仍然很有用。  
+
+但是 *tag number* 挪到了*低 3 位( bottom three bits )* ， *extended tag*（如果用到了）紧随 *tag bit* 后面。  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-new-1.jpg)
+
+为什么要这样改呢？  
+
+- 我们现有的工具，比如动态链接器，由于一个名为 **Top Byte Ignore(TBI)**[^1] 的 *ARM* 特性，会忽略指针的*高 8 位*。我们将把 *extended tag* 放在 *Top Byte Ignore* 位中，用于标识更多的 *tagged pointer* 类型。  
+- 对于一个**对齐的**普通对象指针，它的*低 3 位*总是 0 。将 *tagged pointer* 的 *tag number* 挪到*低 3 位*后 ，*低 3 位*的值为 *7(0b111)* 时，代表要使用 *extended tag* 。  
+
+现在，*tagged pointer* 和普通的*对象指针*格式一致了，这意味着我们可以添加一个 *extended tag pointer* 类型，然后**在它的 payload 中存储一个普通的指针值**。  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-new-2.jpg)
+
+这为什么很有用呢？  
+
+> Well, it opens up the ability for a tagged pointer to refer to constant data in your binary such as strings or other data structures that would otherwise have to occupy dirty memory.
+
+“它使 *tagged pointer* 能够*引用*二进制包中的*常量数据*，如字符串或其他数据结构，否则这些数据结构将不得不占用 *dirty memory* 。”  
+
+## 使用 APIs
+
+不要在代码中依赖 *Runtime* 的内部细节。我们看一个案例：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-error.jpg)
+
+在上图的示例中，将指针值执行位操作、右移 60 ，如果结果为 *0xa(0b1010)* ，说明这个指针是存有 `NSString` 的 *tagged pointer* 。  
+
+在 *iOS 13* 上，这种写法确实没问题。右移后得到的 1010 这个值分为两部分：  
+
+- 1 是指针的最高位，代表这个指针是 *tagged pointer* 
+- 010 是 *tag number* ，代表这个指针是 *tagged* `NSString`
+
+但在 *iOS 14* 上，*tag number* 被移到了*低 3 位*，所以上面代码中的判断在新系统上不再准确。  
+
+应该使用 `isKindOfClass` 这种公开的 API 来判断指针类型，而不要依赖 *Runtime* 中的内部细节。  
+
+最后，演讲人又说了两段话来解释为什么不要在代码中依赖 *Runtime* 的内部细节，值得引起（喜欢在生产环境中使用系统私有 API 的）开发者们的注意：  
+
+> We don't want to hide anything and we definitely don't want to break anybody's apps.
+
+“我们不想隐藏任何东西，也绝对不想破坏任何人的 APP 。”
+
+> When these details aren't exposed, it's just because we need to maintain the flexibility to make changes like this, and your apps will keep working just fine, as long as they don't rely on these internal details.
+
+“这些细节没有被公开，只是因为我们需要保持灵活性来做出类似上文中的优化。只要你的 APP 不依赖于这些内部细节，它们将继续正常工作。”
+
+# 小结
+
+以 *PPT* 里的总结来结尾吧：  
+
+![](/images/WWDC/2020/10163-OC-Runtime-Changes/wrap-up.jpg){: .normal width="500"}
+
+## 相关资料
+
+- 笔者整理的 *WWDC* 资料库，含讲稿（字幕）：[https://github.com/Bob-Playground/WWDC-Stuff](https://github.com/Bob-Playground/WWDC-Stuff)
+
+# Reference
+
+[^1]: **Top Byte Ignore(TBI)** : 是 *ARMv8* 引入的一个特性，它通过忽略虚拟地址( *virtual address* )的*高 8 位*来提供内存标记工具。这允许软件使用一个**64位**指针的*高 8 位*作为标签。参考：[https://en.wikichip.org/wiki/arm/tbi](https://en.wikichip.org/wiki/arm/tbi)
