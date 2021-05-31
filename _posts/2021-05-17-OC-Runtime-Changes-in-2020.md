@@ -14,8 +14,9 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
 
 经过优化后：
 
-- **Less memory usage**（减少了内存的使用）
-- **Smaller binaries**（二进制包更小）
+- *Less memory usage*（减少了内存的使用）
+- *Smaller binaries*（二进制包更小）
+- *ARM64* 架构上的 *Tagged Pointer* 可以存放普通的*对象指针*了。
 
 由于疫情影响，*WWDC 2020* 完全是线上举办的，官网上也没有给出演示 *PDF* ，只有[讲稿（即字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2020/10163-OC-Runtime-Changes/Transcript-Edited.md)。
 
@@ -103,11 +104,11 @@ _绿色部分是 dirty memory ，蓝色部分是 clean memory_
 
 “但是通过对实际设备的使用进行分析，我们发现只有大约 **10%** 的*类*真正改变了它们的**方法列表** 。”  
 
-并且 `demangled` 只被 *Swift class* 使用了，并且只有当 *Swift class* 需要知道它们对应的 *Objective-C* 名称时，才需要用到它。
+并且 `demangled` 只被 *Swift class* 使用了，并且只有当 *Swift class* 查询它们对应的 *Objective-C* 名称时，才需要用到它。
 
 因此，我们可以把 `class_rw_t` 拆成两部分，将不常使用的部分拆分出去、放在名为 `class_rw_ext_t` 的新结构中。  
 
-对于确实需要*附加信息*的*类*，我们才创建 `class_rw_ext_t` 、并将其放入*类*中使用。  
+对于确实需要*附加信息*的*类*，我们才创建 `class_rw_ext_t` 。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-1.jpg)
 
@@ -150,7 +151,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 - `class_copyMethodList`
 - ...
 
-而不要在代码中直接使用 *Runtime* 的这些私有类型，否则新系统更新了这些类型的 *layout*，代码就无法正常运行。  
+而不要在代码中直接使用 *Runtime* 的这些私有类型，否则，如果新系统更新了这些类型的 *layout*，代码就无法正常运行了。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-class_rw_ext_t-error.jpg)
 
@@ -214,7 +215,7 @@ method's implementation
 
 但是请注意，*binary image* 中的*类*的 *method entry* ，只会指向该 *binary image* 中的方法的实现。我们不会把某方法的 metadata 放在一个 binary 中，而把这个方法的实现放在另一个 binary 中。  
 
-这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己 *binary image* 中的方法，而这些方法总是在附近。  
+这意味着 *method list entries* 实际上不需要引用整个**64位**地址空间的能力。它们只需要能够引用自己的 *binary image* 中的方法，而这些方法总是在附近。  
 
 ## 使用相对方法列表( Reletive Method Lists )
 
@@ -265,7 +266,14 @@ method's implementation
 
 > You still get the benefit from the OS itself being built with the new relative method lists, and the system has no problem with both formats in use in the same app at the same time.
 
-“你仍然可以从使用新的 *relative method lists* 构建的操作系统中获得好处，并且系统在同一 *APP* 中同时使用两种格式没有问题。” 
+“你仍然可以从使用新的 *relative method lists* 构建的操作系统中获得好处，并且系统在同一 *APP* 中同时使用两种格式没有问题。”   
+
+比如，假设我们的 *APP* 的 *minimum deployment target* 指定的是 *iOS 13* ，并在 *APP* 内引入了两个库：  
+
+1. 系统内建的 `UIKit` ，它在 *iOS 13* 上使用的是普通方法列表，在 *iOS 14* 的 `UIKit` 使用的是相对方法列表；
+2. 一个第三方的 *Framework* ，*minimum deployment target* 指定的是 *iOS 13* ，因此它将使用普通方法列表。
+
+在 *iOS 14* 系统上运行这个 *APP* ，使用相对方法列表的 `UIKit` 和使用普通方法列表的 *Framework* 都能正常运行。  
 
 但是，如果把项目的 *minimum deployment target* 指定为今年发布的系统版本( *iOS 14* )，那么生成的二进制包更小、使用时占用的内存更小( **smaller binaries** and **less memory usage** )。这对 *Objective-C* 或 *Swift* 项目都是一个很好的建议。当 *Xcode* 知道它不需要支持旧的系统版本时，它通常可以生成优化地更好的代码或数据。  
 
@@ -273,8 +281,8 @@ method's implementation
 
 假设我们有两个项目：
 
-1. 一个把 *minimum deployment target* 指定为 *iOS 14* 的 Framework ，Xcode 在构建它时，会使用 *relative method lists* ；
-2. 一个把 *minimum deployment target* 指定为 *iOS 13* 的 *APP* ，Xcode 在构建它时，会使用旧格式的 *method lists* 。
+1. 一个是把 *minimum deployment target* 指定为 *iOS 14* 的 Framework ，Xcode 在构建它时，会使用 *relative method lists* ；
+2. 另一个是把 *minimum deployment target* 指定为 *iOS 13* 的 *APP* ，Xcode 在构建它时，会使用旧格式的 *method lists* 。
 
 如果我们把上述 Framework 集成到上述 APP 中，在 iOS 13 系统上运行此 *APP* 会出现问题。由于旧的系统版本没有处理 *relative method lists* 的机制，所以会读取两个**32位**的指针、当成一个**64位**指针使用。  
 
@@ -323,7 +331,7 @@ method's implementation
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-1.jpg)
 
-在上图中，我们创建了一个值为 42 的 *NSNumber* 。42 对应的二进制数是 101010 ，这个二进制数被放入了 *tagged pointer* 的第 5 至 10 位。  
+在上图的示例中，我们创建了一个值为 42 的 *NSNumber* 。42 对应的二进制数是 101010 ，这个二进制数被放入了 *tagged pointer* 的第 5 至 10 位。  
 
 只要我们（指 *Runtime* 的开发者）教 `NSNumber` 如何读取这些*位*，并教 *Runtime* 正确处理 *tagged pointer* ，系统的其余部分就可以把这些东西当作*对象指针*，永远不知道其中的区别。  
 
@@ -335,19 +343,19 @@ method's implementation
 
 所以，如果开发者尝试去读取内存中 *tagged pointer* 的值，获取到的将是被混淆的值。  
 
-### tag type 和 payload
+### tag number 和 payload
 
-接下来的 3 *bit* 代表 *tagged pointer* 的*类型*。比如 *3(0b011)* 代表 `NSNumber` ，*6(0b110)* 代表 `NSDate` 。  
+接下来的 3 *bit* 是 *tag number* ，代表 *tagged pointer* 的*类型*。比如 *3(0b011)* 代表 `NSNumber` ，*6(0b110)* 代表 `NSDate` 。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-2.jpg)
 
-因为有 3 *bit* ，说明可以表示 8 种类型(0-7)。  
+因为 *tag number* 有 3 *bit* ，说明可以表示 8 种类型(0-7)。  
 
-剩下的 *bit* 是 *payload* ，用来存储值。对于 *tagged* `NSNumber` 来说， *payload* 存储的就是实际的数值。  
+剩下的 *bits* 是 *payload* ，用来存储值。对于 *tagged* `NSNumber` 来说， *payload* 存储的就是实际的数值。  
 
 ### extended tag
 
-*tag 7(0b111)* 是一个特殊的 case ，它代表要使用 *extended tag* 。  
+*tag number* 等于 *7(0b111)* 是一个特殊的 case ，它代表要使用 *extended tag* 。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-intel-3.jpg)
 
@@ -367,7 +375,7 @@ method's implementation
 
 ### iOS 13 中 tagged pointer 的格式
 
-和 *Intel* 平台不同的是，在 *ARM64* 平台上使用*最高位( top bit )* 来标识 *tagged pointer* 。接下来的 *3 bits* 用于标识 tagged pointer 的类型，payload 使用剩下的 bits ：  
+和 *Intel* 平台不同的是，在 *ARM64* 平台上使用*最高位( top bit )* 来标识 *tagged pointer* 。接下来的 *3 bits* 用于标识 tagged pointer 的类型，payload 使用剩下的 *bits* ：  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-overview.jpg)
 
@@ -388,7 +396,9 @@ if (ptrValue <= 0) // is tagged or nil
 - `nil` 对应的指针值是 `0x0` ；
 - 由于*最高位( top bit )* 是*符号位*，当最高位是 1 是，指针值是一个负数。
 
-和 *Intel* *平台类似，ARM* 上的 *tag number* *7(0b111)* 代表要把接下来的 *8 bit* 用做 *extended tag* 。剩下的 bits 给 *payload* 使用：  
+所有当指针值小于或等于 0 时，代表指针为 *tagged pointer* 或 `nil` 。  
+
+和 *Intel* *平台类似，ARM* 上的 *tag number* *7(0b111)* 代表要把接下来的 *8 bit* 用做 *extended tag* 。剩下的 *bits* 给 *payload* 使用：  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-old.jpg)
 
@@ -402,10 +412,14 @@ if (ptrValue <= 0) // is tagged or nil
 
 为什么要这样改呢？  
 
-- 我们现有的工具，比如动态链接器，由于一个名为 **Top Byte Ignore(TBI)**[^1] 的 *ARM* 特性，会忽略指针的*高 8 位*。我们将把 *extended tag* 放在 *Top Byte Ignore* 位中，用于标识更多的 *tagged pointer* 类型。  
+我们再来看看 *tagged pointer* 和普通的*对象指针*的差异。  
+
+- 我们现有的工具，比如动态链接器，由于一个名为 **Top Byte Ignore(TBI)**[^1] 的 *ARM* 特性，会忽略指针的*高 8 位*。所有，我们可以把 *extended tag* 放在 *Top Byte Ignore* 位中，用于标识更多的 *tagged pointer* 类型。  
 - 对于一个**对齐的**普通对象指针，它的*低 3 位*总是 0 。将 *tagged pointer* 的 *tag number* 挪到*低 3 位*后 ，*低 3 位*的值为 *7(0b111)* 时，代表要使用 *extended tag* 。  
 
-现在，*tagged pointer* 和普通的*对象指针*格式一致了，这意味着我们可以添加一个 *extended tag pointer* 类型，然后**在它的 payload 中存储一个普通的指针值**。  
+现在，*tagged pointer* 和普通的*对象指针*格式一致了，这意味着我们可以添加一个 *extended tag pointer* 类型，代表 payload 中存储的是一个指针类型的值。  
+
+因此，**我们可以在 tagged pointer 的 payload 中存储一个普通的指针值了**。  
 
 ![](/images/WWDC/2020/10163-OC-Runtime-Changes/runtime-tagged-pointer-on-arm64-new-2.jpg)
 
@@ -428,7 +442,7 @@ if (ptrValue <= 0) // is tagged or nil
 - 1 是指针的最高位，代表这个指针是 *tagged pointer* 
 - 010 是 *tag number* ，代表这个指针是 *tagged* `NSString`
 
-但在 *iOS 14* 上，*tag number* 被移到了*低 3 位*，所以上面代码中的判断在新系统上不再准确。  
+但在 *iOS 14* 上，由于 *tag number* 被移到了*低 3 位*，所以上面代码中的判断在新系统上不再准确。  
 
 应该使用 `isKindOfClass` 这种公开的 API 来判断指针类型，而不要依赖 *Runtime* 中的内部细节。  
 
