@@ -103,6 +103,7 @@ GEM
 
 PLATFORMS
   universal-darwin-20
+  x86_64-darwin-19
 
 DEPENDENCIES
   html-proofer (~> 3.18)
