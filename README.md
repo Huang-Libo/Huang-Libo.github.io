@@ -183,3 +183,21 @@ bundle config set --local path 'vendor/bundle'
 ```
 
 然后再执行 `bundle install`。  
+
+## nokogumbo 报错
+
+执行 `bundle install` 时，`nokogumbo` 报错：  
+
+```
+An error occurred while installing nokogumbo (2.0.5), and Bundler cannot continue.
+Make sure that `gem install nokogumbo -v '2.0.5' --source 'https://rubygems.org/'` succeeds
+before bundling.
+
+In Gemfile:
+  html-proofer was resolved to 3.19.1, which depends on
+    nokogumbo
+```
+
+按照提示执行 `gem install nokogumbo -v '2.0.5' --source 'https://rubygems.org/` 还是不行。  
+
+解决方法：把 `vendor/bundle` 目录删除，再执行 `bundle install` 就可以了。  
