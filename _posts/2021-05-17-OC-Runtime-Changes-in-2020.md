@@ -47,7 +47,7 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
 
 类对象( *class object* )中包含了我们最常访问的信息：指向元类的指针( *metaclass* )，指向父类的指针( *superclass* )，以及指向方法缓存的指针( *method cache* )。  
 
-类对象还有一个指针，指向存有更多信息的类型，叫做 `class_ro_t` ，其中的 **ro** 代表 **read only** 。`class_ro_t` 存储着**类的名称**，以及**方法列表**、**协议**、**属性**、**实例变量**等信息。  
+类对象中还有一个 `class_ro_t` 类型的指针，指向存有更多信息的类型。其中的 **ro** 代表 **read only** 。`class_ro_t` 存储着**类的名称**，以及**方法列表**、**协议**、**属性**、**实例变量**等信息。  
 
 *类对象*和 `class_ro_t` 的示意图：  
 
@@ -159,7 +159,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 # 2. Reletive Method Lists
 
-> 在引入的 *Binary Image* 中使用 **Reletive Method Lists** 。  
+> 在 *Binary Image* 中使用 **Reletive Method Lists** 。  
 
 每个*类*都有一个附属的*方法列表( Method List )* 。当你给一个*类*写了一个新方法，它会被添加到这个列表中。  
 
@@ -189,7 +189,7 @@ method's implementation
 
 ## 进程中内存的划分
 
-上述内容属于 *clean memory* ，但 *clean memory* 也不是免费的。它仍然需要从 *disk* 加载，并在使用时占用 *memory* 。
+上述内容属于 *clean memory* ，但 *clean memory* 也不是“免费”的。它仍然需要从 *disk* 加载，并在使用时占用 *memory* 。
 
 这是进程中*内存*的放大视图：  
 
@@ -301,7 +301,7 @@ method's implementation
 
 # 3. ARM64 架构上 Tagged Pointer 格式的变化
 
-下文关于 *tagged pointer* 的介绍用到了几组词汇，这里先做个解释：  
+下文关于 *tagged pointer* 的介绍用到了几个术语，这里先做个解释：  
 
 - **tag bit** : 共 **1 bit**，是 *tagged pointer* 的标志位；
 - **tag number** : 共 **3 bit**，代表 *tagged pointer* 的类型；
