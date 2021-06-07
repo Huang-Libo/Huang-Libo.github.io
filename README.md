@@ -201,3 +201,9 @@ In Gemfile:
 按照提示执行 `gem install nokogumbo -v '2.0.5' --source 'https://rubygems.org/` 还是不行。  
 
 解决方法：把 `vendor/bundle` 目录删除，再执行 `bundle install` 就可以了。  
+
+## 在多台 Mac 上写作时同步文件
+
+场景：在公司和家里各有一台 *Mac*，在未 *commit* 前，修改的内容需要在两台设备上同步。  
+
+最好使用 *Dropbox* ，*iCloud Driver* 还是不太靠谱。特别是小文件很多的时候，*Dropbox* 的可用性、稳定性都更好，并且可以看到单个文件的同步状态。  
