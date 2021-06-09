@@ -207,3 +207,110 @@ In Gemfile:
 场景：在公司和家里各有一台 *Mac*，在未 *commit* 前，修改的内容需要在两台设备上同步。  
 
 最好使用 *Dropbox* ，*iCloud Driver* 还是不太靠谱。特别是小文件很多的时候，*Dropbox* 的可用性、稳定性都更好，并且可以看到单个文件的同步状态。  
+
+## 两台 Mac 上 bundler 版本不一致导致的问题
+
+> 家里和公司的 Mac 是通过 Dropbox 同步笔记的。
+
+前一天晚上在家里的 Mac 上写了点笔记，第二天用公司的 Mac 继续写，执行 `bundle exec jekyll server` 时报错：  
+
+```
+Traceback (most recent call last):
+	17: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `<main>'
+	16: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `eval'
+	15: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/bin/jekyll:23:in `<main>'
+	14: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/bin/jekyll:23:in `load'
+	13: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/exe/jekyll:8:in `<top (required)>'
+	12: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/exe/jekyll:8:in `require'
+	11: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/lib/jekyll.rb:195:in `<top (required)>'
+	10: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/lib/jekyll.rb:195:in `require'
+	 9: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll-sass-converter.rb:4:in `<top (required)>'
+	 8: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll-sass-converter.rb:4:in `require'
+	 7: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll/converters/scss.rb:3:in `<top (required)>'
+	 6: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll/converters/scss.rb:3:in `require'
+	 5: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc.rb:31:in `<top (required)>'
+	 4: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc.rb:31:in `require_relative'
+	 3: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc/native.rb:3:in `<top (required)>'
+	 2: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc/native.rb:3:in `require'
+	 1: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi.rb:3:in `<top (required)>'
+$HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi.rb:3:in `require': cannot load such file -- 2.6/ffi_c (LoadError)
+	18: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `<main>'
+	17: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `eval'
+	16: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/bin/jekyll:23:in `<main>'
+	15: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/bin/jekyll:23:in `load'
+	14: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/exe/jekyll:8:in `<top (required)>'
+	13: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/exe/jekyll:8:in `require'
+	12: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/lib/jekyll.rb:195:in `<top (required)>'
+	11: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-4.2.0/lib/jekyll.rb:195:in `require'
+	10: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll-sass-converter.rb:4:in `<top (required)>'
+	 9: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll-sass-converter.rb:4:in `require'
+	 8: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll/converters/scss.rb:3:in `<top (required)>'
+	 7: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/jekyll-sass-converter-2.1.0/lib/jekyll/converters/scss.rb:3:in `require'
+	 6: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc.rb:31:in `<top (required)>'
+	 5: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc.rb:31:in `require_relative'
+	 4: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc/native.rb:3:in `<top (required)>'
+	 3: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/sassc-2.4.0/lib/sassc/native.rb:3:in `require'
+	 2: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi.rb:2:in `<top (required)>'
+	 1: from $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi.rb:5:in `rescue in <top (required)>'
+$HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi.rb:5:in `require': incompatible library version - $HOME/$BLOG/vendor/bundle/ruby/2.6.0/gems/ffi-1.15.1/lib/ffi_c.bundle (LoadError)
+```
+
+从报错前两行的 `$HOME/.rvm/gems/ruby-2.6.5` 中可以看出，当前 *Mac* 使用的 ruby 版本是 `2.6.5` 。  
+
+而后面的 `$BLOG/vendor/bundle/ruby/2.6.0` **不是**说 `bundle install` 时使用的 *ruby* 版本是 `2.6.0` ，所有 `2.6.x` 小版本在这个目录上都会显示成 `2.6.0` 。  
+
+不过最好还是保持两台 *Mac* 上的 *ruby* 版本保持一致。  
+
+再执行 `bundle install` ，出现了 **Warning** ：  
+
+```
+❯ bundle install
+Warning: the running version of Bundler (2.1.4) is older than the version that created the lockfile (2.2.17). We suggest you to upgrade to the version that created the lockfile by running `gem install bundler:2.2.17`.
+```
+
+原因是 `Gemfile.lock` 中指定的 *bundle* 版本是 `2.2.17` ，而当前 Mac 使用的 版本是 `2.1.4` 。在 `Gemfile.lock` 最下面有 *bundler* 相关信息：  
+
+```
+BUNDLED WITH
+   2.2.17
+```
+
+先执行 `gem install bundler:2.2.17` 在当前 *Mac* 上安装指定版本的 *bundler* 。  
+
+删除 `vendor/bundle` 目录，再执行 `bundle install` ，完成后，执行 `bundle exec jekyll server` ，就可以了。  
+
+**结论：两台电脑的 ruby 版本、bundler 版本最好保持一致。**
+
+## rvm 相关操作
+
+查看本机已安装的版本：  
+
+```
+rvm list
+```
+
+查看云端所有的版本：  
+
+```
+rvm list know
+```
+
+安装指定的版本：  
+
+```
+rvm install 2.7.3
+```
+
+切换版本：  
+
+```
+rvm use 2.7.2
+```
+
+切换版本并设置成 default：  
+
+```
+rvm --default use 2.7.2
+```
+
+参考：http://homeway.github.io/tutorial/rvm.html
