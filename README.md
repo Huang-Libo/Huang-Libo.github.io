@@ -1,4 +1,28 @@
-# 架构简介
+- [Blog 架构简介](#blog-架构简介)
+- [Jekyll 相关文档](#jekyll-相关文档)
+- [下载 & 安装依赖](#下载--安装依赖)
+- [Jekyll 启动本地 server](#jekyll-启动本地-server)
+- [Chirpy Theme](#chirpy-theme)
+  - [Chirpy Theme 相关文档](#chirpy-theme-相关文档)
+  - [Chirpy Theme 集成的方式](#chirpy-theme-集成的方式)
+  - [Chirpy Theme 自定义图标 favicon](#chirpy-theme-自定义图标-favicon)
+  - [Chirpy Theme 的其他设置](#chirpy-theme-的其他设置)
+- [写博客：vscode 及相关插件](#写博客vscode-及相关插件)
+  - [Jekyll Run](#jekyll-run)
+  - [Markdown Preview Enhanced](#markdown-preview-enhanced)
+  - [Markdown All in One](#markdown-all-in-one)
+- [FAQ](#faq)
+  - [站点的 favicon 显示不对](#站点的-favicon-显示不对)
+  - [已经修改了网站，但没生效](#已经修改了网站但没生效)
+  - [执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题](#执行-bundle-install-失败http_parserrb-060-导致的问题)
+  - [修改 RubyGems 源](#修改-rubygems-源)
+  - [bundle 相关设置](#bundle-相关设置)
+  - [nokogumbo 报错](#nokogumbo-报错)
+  - [在多台 Mac 上写作时同步文件](#在多台-mac-上写作时同步文件)
+  - [两台 Mac 上 bundler 版本不一致导致的问题](#两台-mac-上-bundler-版本不一致导致的问题)
+  - [rvm 相关操作](#rvm-相关操作)
+
+# Blog 架构简介
 
 `Jekyll` + `Chirpy Theme`
 
@@ -22,7 +46,9 @@ https://jekyllrb.com/
 bundle exec jekyll serve --drafts
 ```
 
-# Chirpy Theme 相关文档
+# Chirpy Theme 
+
+## Chirpy Theme 相关文档
 
 **chirpy live demo**（包含一些使用说明）：https://chirpy.cotes.info/  
 
@@ -34,7 +60,7 @@ bundle exec jekyll serve --drafts
 
 - https://onevcat.com/
 
-# Chirpy Theme 集成的方式
+## Chirpy Theme 集成的方式
 
 [本站点是使用RubyGems 方式安装的 Chirpy Theme](https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/docs/README.zh-CN.md#rubygems-%E5%AE%89%E8%A3%85)。   
 
@@ -58,11 +84,11 @@ bundle update jekyll-theme-chirpy
 bundle info --path jekyll-theme-chirpy
 ```
 
-# Chirpy Theme 自定义图标 favicon
+## Chirpy Theme 自定义图标 favicon
 
 在站点的 `/assets/img/favicons` 目录下添加图片资源，详情请参考文档：https://chirpy.cotes.info/posts/customize-the-favicon/  
 
-# Chirpy Theme 的其他设置
+## Chirpy Theme 的其他设置
 
 Google 阅读人数统计在 `_config.yml` 中设置，目前还未设置。 
 
@@ -117,7 +143,7 @@ https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
 - 如果是在桌面端使用 `Chrome`，则按 **cmd + Shift + R** 强制刷新页面。
 - 如果是在 iPhone 上使用 `Safari`，则可以去 **设置 - Safari - 高级 - 网站数据** 中删除相关站点的缓存。
 
-## 执行 `bundle install` 失败：http_parser.rb (0.6.0) 导致的问题
+## 执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题
 
 ![](images/GitHub/http_parser-error.png)
 
