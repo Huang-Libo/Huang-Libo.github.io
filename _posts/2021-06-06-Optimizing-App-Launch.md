@@ -1,5 +1,5 @@
 ---
-title: "【2019】优化 APP 启动"
+title: "[WIP]【2019】优化 APP 启动"
 categories: [攻城狮, WWDC]
 tags: [WWDC 2019, iOS, APP Launch]
 ---
@@ -8,29 +8,33 @@ tags: [WWDC 2019, iOS, APP Launch]
 
 [WWDC 2019 / 423 - Optimizing App Launch](https://developer.apple.com/videos/play/wwdc2019/423/) 介绍了 *APP* 启动的流程，以及测量和优化启动的方法，演讲者来自 *Performance Team* 。内容包含：  
 
-- 什么是启动
-- 如何正确地测量启动
-- 使用 *Instruments* 剖析启动的过程
-- 长期追踪启动数据
+- 什么是启动、启动的类型、启动的阶段；
+- 如何正确地测量启动、测量时需要排除的干扰因素，以及要关注老设备的性能表现；
+- 使用 *Instruments* 剖析启动的过程，使用 *XCTest* 做自动化的启动统计；
+- 使用 *MetricKit* 和 *Xcode Organizer* 长期追踪启动数据。
 
 # 什么是启动
 
 ## 暖场小故事
 
-全球的 iOS 设备*每天*要启动各类 *APP* 数十亿次。  
+“全球的 *iOS* 设备*每天*要启动各种 *APP* 数十亿次。”  
 
-如果每次启动能节省一毫秒，那么能节省 162 天，这是将🚀发射到火星所需要的时间。  
+如果每次启动能节省一毫秒，那么能节省 162 天（即所有 *iOS* 设备在一天内启动 *APP* 时能节省的总时间），这是将🚀发射到火星所需要的时间。  
+
+他们计算的方式应该是这样的：  
 
 ```
 14*1,000,000,000/1000/60/60/24 ≈ 162天
 ```
+
+这个小故事和“全国每个人给我一块钱我就有 13 亿块钱了”有异曲同工之，哈哈。  
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-162-days-to-mars.jpg)
 _把🚀送上火星需要162天_
 
 ## 为什么启动很重要
 
-> *App* launch is a user experience interruption.
+> App launch is a user experience interruption.
 
 “*APP* 启动是用户体验的中断。”  
 
@@ -38,7 +42,7 @@ _把🚀送上火星需要162天_
 
 启动是用户对 *APP* 的第一印象，因此，它应该是令人愉悦的。  
 
-另外，开发者倾向于关注更新的设备，但我们得保障使用旧机型的用户也同样有好的 *APP* 使用体验。  
+另外，开发者倾向于关注更新的设备，但我们得保障使用旧机型的用户也有比较好的 *APP* 使用体验。  
 
 ### 2. 可以反映整体的代码质量
 
