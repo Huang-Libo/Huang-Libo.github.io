@@ -13,6 +13,8 @@ tags: [WWDC 2019, iOS, APP Launch]
 - 使用 *Instruments* 剖析启动的过程，使用 *XCTest* 做自动化的启动统计；
 - 使用 *MetricKit* 和 *Xcode Organizer* 长期追踪启动数据。
 
+相关资源：笔者整理过的[讲稿（字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2019/423-Optimizing-App-Launch/Optimizing-App-Launch-Edited.md)。
+
 # 什么是启动
 
 ## 暖场小故事
@@ -27,7 +29,7 @@ tags: [WWDC 2019, iOS, APP Launch]
 14*1,000,000,000/1000/60/60/24 ≈ 162天
 ```
 
-这个小故事和“全国每个人给我一块钱我就有 13 亿块钱了”有异曲同工之，哈哈。  
+这个小故事和“全国每个人给我一块钱我就有 13 亿块钱了”有异曲同工之妙，哈哈。  
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-162-days-to-mars.jpg)
 _把🚀送上火星需要162天_
@@ -70,4 +72,4 @@ _把🚀送上火星需要162天_
 
 在**400毫秒**内展示第一帧。  
 
-也就是说，在启动动画（*launch animation*）完成前，就应该完成 *UI* 的展示，当启动动画结束时，*APP* 就应该是可交互的（*interactive*）、可响应的（*responsive*）。  
+也就是说，在启动动画（*launch animation*）完成前，就应该完成 *UI* 的展示；当启动动画结束后，*APP* 就应该是可交互的（*interactive*）、可响应的（*responsive*）。  
