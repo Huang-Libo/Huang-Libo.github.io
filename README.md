@@ -3,24 +3,26 @@
 - [下载 & 安装依赖](#下载--安装依赖)
 - [Jekyll 启动本地 server](#jekyll-启动本地-server)
 - [Chirpy Theme](#chirpy-theme)
-  - [Chirpy Theme 相关文档](#chirpy-theme-相关文档)
-  - [Chirpy Theme 集成的方式](#chirpy-theme-集成的方式)
-  - [Chirpy Theme 自定义图标 favicon](#chirpy-theme-自定义图标-favicon)
-  - [Chirpy Theme 的其他设置](#chirpy-theme-的其他设置)
+	- [Chirpy Theme 相关文档](#chirpy-theme-相关文档)
+	- [Chirpy Theme 集成的方式](#chirpy-theme-集成的方式)
+	- [Chirpy Theme 自定义图标 favicon](#chirpy-theme-自定义图标-favicon)
+	- [Chirpy Theme 的其他设置](#chirpy-theme-的其他设置)
 - [写博客：vscode 及相关插件](#写博客vscode-及相关插件)
-  - [Jekyll Run](#jekyll-run)
-  - [Markdown Preview Enhanced](#markdown-preview-enhanced)
-  - [Markdown All in One](#markdown-all-in-one)
+	- [Jekyll Run](#jekyll-run)
+	- [Markdown Preview Enhanced](#markdown-preview-enhanced)
+	- [Markdown All in One](#markdown-all-in-one)
 - [FAQ](#faq)
-  - [站点的 favicon 显示不对](#站点的-favicon-显示不对)
-  - [已经修改了网站，但没生效](#已经修改了网站但没生效)
-  - [执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题](#执行-bundle-install-失败http_parserrb-060-导致的问题)
-  - [修改 RubyGems 源](#修改-rubygems-源)
-  - [bundle 相关设置](#bundle-相关设置)
-  - [nokogumbo 报错](#nokogumbo-报错)
-  - [在多台 Mac 上写作时同步文件](#在多台-mac-上写作时同步文件)
-  - [两台 Mac 上 bundler 版本不一致导致的问题](#两台-mac-上-bundler-版本不一致导致的问题)
-  - [rvm 相关操作](#rvm-相关操作)
+	- [站点的 favicon 显示不对](#站点的-favicon-显示不对)
+	- [已经修改了网站，但没生效](#已经修改了网站但没生效)
+	- [执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题](#执行-bundle-install-失败http_parserrb-060-导致的问题)
+	- [修改 RubyGems 源](#修改-rubygems-源)
+	- [bundle 相关设置](#bundle-相关设置)
+	- [nokogumbo 报错](#nokogumbo-报错)
+	- [在多台 Mac 上写作时同步文件](#在多台-mac-上写作时同步文件)
+	- [两台 Mac 上 bundler 版本不一致导致的问题](#两台-mac-上-bundler-版本不一致导致的问题)
+	- [为什么不用 macOS 自带的 ruby](#为什么不用-macos-自带的-ruby)
+	- [rvm 相关操作](#rvm-相关操作)
+	- [gem ssl error: certificate verify failed](#gem-ssl-error-certificate-verify-failed)
 
 # Blog 架构简介
 
@@ -307,7 +309,53 @@ BUNDLED WITH
 
 **结论：两台电脑的 ruby 版本、bundler 版本最好保持一致。**
 
+## 为什么不用 macOS 自带的 ruby
+
+系统 *ruby* 的位置是 `/usr/bin/ruby` ；系统 *gem* 的位置是 `/Library/Ruby/Gems/`，将软件安装到系统 *gem* 的位置时需要 *sudo* 权限。  
+
+最好用 [rvm](https://rvm.io/) 或 [rbenv](http://rbenv.org/) 来安装和管理不同版本的 ruby ，可减少 sudo 相关的操作，也更便捷。  
+
+*rvm* 和 *rbenv* 的区别：
+
+- *rvm* 是老牌的 *ruby* 版本管理工具，不同版本之间使用独立的的 gemset ，追求高度自动化、全面，适合新手。
+- *rbenv* 是后起之秀，*GitHub stars* 已经超过了 *rvm* ；小而简洁，运行效率更高，但自动化程度比 *rvm* 低，适合有经验的、有定制化需求的老手。
+
+另外，据 *RubyChina* 论坛的[网友反馈](https://ruby-china.org/topics/10275 )，*rvm* 的 bug 略多，当 *ruby* 环境出问题时，很难判断到底是用户自己环境配置的问题还是 *rvm* 自身的 bug。  
+
+如果遇到奇怪的 bug ，可以尝试重装 *rvm* 。  
+
+笔者就在家里的 *Mac* 上遇到过 `gem sources --add` 失败的问题：
+
+```
+Unable to download data from https://rubygems.org/ - no such name (https://rubygems.org/specs.4.8.gz
+```
+
+查了很多资料，网友列举了多种可能：
+
+- ipv6 连接失败。这个网站会优先连接 ipv6 ，如果超时了，不会再去尝试 ipv4 连接，好像是一个 bug 。
+  - 但笔者遇到的情况是执行命令后立即失败了，看上去不是连接超时了。
+  - 另外笔者关闭了 ipv6 连接后，也还是不奏效。
+- rubygems.org 被墙了，要使用 VPN 代理。
+  - 笔者使用 proxychain 连代理服务器，不奏效。
+  - 换 RubyChina 的国内镜像源，也报同样的错误。
+
+最后重装 rvm 后，又不知道改了什么，就好了。惊不惊喜。  
+
 ## rvm 相关操作
+
+安装 rvm ：  
+
+```
+\curl -sSL https://get.rvm.io | bash -s stable --ruby
+```
+
+更新 rvm ：  
+
+```
+rvm get stable
+```
+
+安装完成后，在当前终端执行 `rvm reload` ，或打开一个新的终端。  
 
 查看本机已安装的版本：  
 
@@ -321,10 +369,17 @@ rvm list
 rvm list know
 ```
 
-安装指定的版本：  
+安装指定的版本，如果存在二进制版本，则会直接安装二进制版本；若不存在，则会下载源码，本机编译安装：  
 
 ```
 rvm install 2.7.3
+```
+
+指定只从源码编译安装：  
+
+```
+# 忽略二进制，否则可能会请求 rubies.travis-ci.org
+rvm install 2.7.3 --disable-binary
 ```
 
 切换版本：  
@@ -336,7 +391,91 @@ rvm use 2.7.2
 切换版本并设置成 default：  
 
 ```
-rvm --default use 2.7.2
+rvm use 2.7.2 --default
+```
+
+使用系统 ruby ：
+
+```
+rvm use system --default
 ```
 
 参考：http://homeway.github.io/tutorial/rvm.html
+
+## gem ssl error: certificate verify failed
+
+之前为了尝试解决一个奇怪的问题，修改了 *host* ，然后后来忘了改回来，导致了 *ssl error* 。在 `/etc/hosts` 中把相关项移除就可以了：    
+
+```
+151.101.192.70  rubygems.org
+```
+
+下面记录一下排错的经历📝。
+
+执行 `gem update --system` 报错：  
+
+```
+~
+❯ 
+Updating rubygems-update
+ERROR:  SSL verification error at depth 0: ok (0)
+ERROR:  While executing gem ... (Gem::RemoteFetcher::FetchError)
+    SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed (certificate rejected) (https://rubygems.org/api/v1/dependencies?gems=rubygems-update)
+```
+
+查阅相关文档：    
+
+- https://guides.rubygems.org/ssl-certificate-update/
+- https://bundler.io/v2.0/guides/rubygems_tls_ssl_troubleshooting_guide.html#troubleshooting-certificate-errors
+
+有个脚本，可执行检测连接和证书有效性：  
+
+```
+curl -Lks 'https://git.io/rg-ssl' | ruby
+```
+
+输出：  
+
+```
+Here's your Ruby and OpenSSL environment:
+
+Ruby:           2.6.3p62 (2019-04-16 revision 67580) [universal.x86_64-darwin20]
+RubyGems:       3.0.3
+Bundler:        2.2.17
+Compiled with:  LibreSSL 2.8.3
+Loaded version: LibreSSL 2.8.3
+SSL_CERT_FILE:  /private/etc/ssl/cert.pem
+SSL_CERT_DIR:   /private/etc/ssl/certs
+
+With that out of the way, let's see if you can connect to rubygems.org...
+
+Bundler connection to rubygems.org:       failed  ❌  (certificate verification)
+ERROR:  SSL verification error at depth 0: ok (0)
+RubyGems connection to rubygems.org:      failed  ❌  (certificate verification)
+Ruby net/http connection to rubygems.org: failed  ❌
+
+Unfortunately, this Ruby can't connect to rubygems.org. 😡
+Your Ruby can't connect to rubygems.org because you are missing the certificate files OpenSSL needs to verify you are connecting to the genuine rubygems.org servers.
+```
+
+连接全部失败，并提示是在“证书认证”阶段出的问题。突然想到了之前改过 host ，恢复 host 文件之后，再执行这个脚本，就提示连接全部成功了：  
+
+```
+Here's your Ruby and OpenSSL environment:
+
+Ruby:           2.7.2p137 (2020-10-01 revision 5445e0435260b449decf2ac16f9d09bae3cafe72) [x86_64-darwin20]
+RubyGems:       3.2.19
+Bundler:        2.2.19
+Compiled with:  OpenSSL 1.1.1k  25 Mar 2021
+Loaded version: OpenSSL 1.1.1k  25 Mar 2021
+SSL_CERT_FILE:  /usr/local/etc/openssl@1.1/cert.pem
+SSL_CERT_DIR:   /usr/local/etc/openssl@1.1/certs
+
+With that out of the way, let's see if you can connect to rubygems.org...
+
+Bundler connection to rubygems.org:       success ✅
+RubyGems connection to rubygems.org:      success ✅
+Ruby net/http connection to rubygems.org: success ✅
+
+Hooray! This Ruby can connect to rubygems.org. You are all set to use Bundler and RubyGems. 👌
+```
