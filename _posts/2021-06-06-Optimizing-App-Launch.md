@@ -100,8 +100,28 @@ _把🚀送上火星需要162天_
 | APP 不在内存中 | APP 部分在内存中 | APP 全部在内存中 |
 | 进程不存在 | 进程不存在 | 进程存在 |
 
-# 启动的目标耗时
+# 启动的目标耗时：400毫秒
 
 在 **400 毫秒**内展示第一帧。  
 
 也就是说，在启动动画（*launch animation*）完成前，就应该完成 *UI* 的展示；当启动动画结束后，*APP* 就应该是可交互的（*interactive*）、可响应的（*responsive*）。  
+
+# 案例：Maps APP 的启动
+
+用户点击了 *Maps* 的图标，系统开始执行启动：  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-1.jpg){: .normal width="600"}
+
+前 **100 毫秒**（紫色部分），*iOS* 系统会做初始化 *APP* 所需的系统侧工作：  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-2.jpg){: .normal width="600"}
+
+这给了开发者大约 **300 毫秒**（绿色部分）的时间去创建视图、加载内容、生成 *APP* 的第一帧，也就是说，在 **400 毫秒**内完成启动并展示第一帧。  
+
+第一帧不需要是全部完成的状态，可以为异步加载的数据展示 *placeholder* ，但 *APP* 此时应该是可响应、可交互的。这个阶段完成后，用户可以搜索和查看自己的收藏，等等：  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-3.jpg){: .normal width="600"}
+
+在接下来的几百毫秒里，当异步数据加载完成后，显示最终的页面：  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-4.jpg){: .normal width="600"}
