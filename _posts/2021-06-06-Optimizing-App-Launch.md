@@ -125,3 +125,65 @@ _把🚀送上火星需要162天_
 在接下来的几百毫秒里，当异步数据加载完成后，显示最终的页面：  
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-4.jpg){: .normal width="600"}
+
+# 启动的 6 个阶段
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-overall.jpg)
+
+## 1. System Interface
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-1.jpg)
+
+**1.1** **dyld**
+
+*System Interface* 的前半部分是 *dyld（Dynamic Linker）*，它的作用是加载 *shared libraries* 和 *frameworks* 。
+
+在 *WWDC 2017*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。但直到 2019 年，*iOS 13* 才开始使用 *dyld3* 。  
+
+在使用 *dyld3* 后，系统会*缓存运行时依赖项（caching runtime dependencies）*，会给*热启动*带来显著的速度改进。  
+
+相关 *Session* ：
+
+- *WWDC 2017* : [App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
+
+在使用 *dyld3* 时，有几个建议：  
+  
+- ✅ 避免链接未用到的 *frameworks* 。
+- ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了*缓存运行时依赖项*带来的好处。
+- ✅ 最后，（根据上一条）这意味着要*硬链接（Hard link）*所有的依赖，它比以前更快。
+
+**1.2** **libSystemInit**
+
+*System Interface* 的后半部分是 *libSystemInit* 。在这个阶段，系统初始化 APP 内用到的*底层系统组件（low-level system components）*。  
+
+这主要是具有*固定时间开销*的系统端工作，*APP* 开发者不用太关心。  
+
+## 2. Static Runtime Initialization
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-2.jpg)
+
+这是系统初始化 *APP* 的 **Objective-C 和 Swift 的 Runtime** 的时候。  
+
+一般而言，*APP* 在这个阶段不会做任何工作，除非 *APP* 中包含*静态初始化方法（static initializer method）* ，可能是 *APP* 代码中的，也可能是 *APP* 链接的 *framework* 中的。  
+
+**不建议使用静态初始化方法**。  
+
+下面给两个建议：  
+
+- ✅ *Framework* 的开发者应该考虑暴露初始化的 *API* ，避免使用静态初始化。  
+- ✅ 如果一定要使用静态初始化，考虑把 `+load` 方法中的代码移到 `+initialize` 方法中。因为 `+load` 方法在每次启动 APP 的时候就会调用，而 `+initialize` 方法会在第一次使用这个*类*的时候调用。 
+
+## 3. UIKit Initialization
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-3.jpg)
+
+这是系统初始化 `UIApplication` 和 `UIApplicationDelegate` 的阶段。  
+
+在大多数情况下，这是系统端的工作，设置*事件处理（event processing）*、以及与系统集成。
+
+但是如果开发者子类化了 `UIApplication` ，或者在 `UIApplicationDelegate` 的初始化方法中做了额外的工作，将会影响这阶段的耗时。  
+
+因此，如果做了上述定制化的事情，确保以下两点：  
+
+- ✅ 减少 `UIApplication` 子类中的工作。
+- ✅ 减少 `UIApplicationDelegate` 初始化方法中的工作。
