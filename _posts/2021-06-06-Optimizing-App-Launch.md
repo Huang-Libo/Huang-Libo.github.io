@@ -13,7 +13,7 @@ tags: [WWDC 2019, iOS, APP Launch]
 - 使用 *Instruments* 剖析启动的过程，使用 *XCTest* 做自动化的启动统计；
 - 使用 *MetricKit* 和 *Xcode Organizer* 长期追踪启动数据。
 
-相关资源：笔者整理过的[讲稿（字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2019/423-Optimizing-App-Launch/Optimizing-App-Launch-Edited.md)。
+相关资源：笔者整理过的[讲稿（视频的字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2019/423-Optimizing-App-Launch/Optimizing-App-Launch-Edited.md)。
 
 # 什么是启动
 
@@ -58,18 +58,50 @@ _把🚀送上火星需要162天_
 
 因此，开发者应该尝试减少这部分的工作，因为它会影响*系统的性能*和*电池的消耗量*。  
 
-## 启动的类型
+# 启动的类型
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-1.jpg)
 
+## 1. 冷启动
+
+冷启动（*cold launch*）发生在重启后（或者 *APP* 很长时间没有被启动过）。
+
+在这种情况下，如果要启动一个 *APP* ，需要：
+
+- 将它从*磁盘*加载到*内存*；
+- 启动支撑 *APP* 运行的系统侧服务（*system-side services*）；
+- 创建 *APP* 的进程。
+
+## 2. 热启动
+
+如果 *APP* 最近启动过，下次启动将会是热启动（*warm launch*）。  
+
+**热启动也需要创建进程**，但此时 *APP* 的一部分已经在*内存*中，一些系统侧的服务也已经启动了。  
+
+因此，热启动要比冷启动要快一些。  
+
+## 3. resume
+
+如果 *APP* 的进程还存在，当用户从 *Home screen* 或者 *APP switcher* 重新进入 *APP* 时，就是 *resume*。  
+
+*resume* **不算启动**（*isn't quite a launch*），APP 在之前已经完成了启动。所以 *resume* 的速度很快。  
+
+因此要注意：在做启动测量时，不要把启动和 *resume* 混淆了。
+
+## 不同启动类型的对比
+
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-2.jpg)
 
-- *cold launch*，冷启动
-- *warm launch*，热启动
-- *resume*，不算启动（*isn't quite a launch*）
+简单翻译一下：  
 
-## 目标
+| 冷启动 | 热启动 | Resume |
+|:---:|:---:|:---:|
+| 重启后 | 最近被终止 | APP 被挂起 |
+| APP 不在内存中 | APP 部分在内存中 | APP 全部在内存中 |
+| 进程不存在 | 进程不存在 | 进程存在 |
 
-在**400毫秒**内展示第一帧。  
+# 启动的目标耗时
+
+在 **400 毫秒**内展示第一帧。  
 
 也就是说，在启动动画（*launch animation*）完成前，就应该完成 *UI* 的展示；当启动动画结束后，*APP* 就应该是可交互的（*interactive*）、可响应的（*responsive*）。  
