@@ -311,9 +311,11 @@ BUNDLED WITH
 
 ## 为什么不用 macOS 自带的 ruby
 
-系统 *ruby* 的位置是 `/usr/bin/ruby` ；系统 *gem* 的位置是 `/Library/Ruby/Gems/`，将软件安装到系统 *gem* 的位置时需要 *sudo* 权限。  
+系统 *ruby* 的位置是 `/usr/bin/ruby` ；系统 *gem* 的位置是 `/Library/Ruby/Gems/`，将软件安装到系统 *gem* 的位置时需要 `sudo` 权限。  
 
-最好用 [rvm](https://rvm.io/) 或 [rbenv](http://rbenv.org/) 来安装和管理不同版本的 ruby ，可减少 sudo 相关的操作，也更便捷。  
+另外，在两台系统版本不一样的 *Mac* 上用云盘同步 *ruby* 项目时，由于不同系统版本下的 *ruby* 版本可能不同，*gemset* 环境也难以保持一致，会导致运行的时候报错，一般是因为当前 *Mac* 缺少依赖的 *gem* 包。  
+
+最好用 [rvm](https://rvm.io/) 或 [rbenv](http://rbenv.org/) 来安装和管理不同版本的 *ruby* ，可减少 `sudo` 相关的操作，也能保障多台 *Mac* 上的 *ruby* 环境高度一致。  
 
 *rvm* 和 *rbenv* 的区别：
 
