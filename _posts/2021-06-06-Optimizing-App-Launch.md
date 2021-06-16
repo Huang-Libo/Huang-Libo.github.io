@@ -179,7 +179,7 @@ _把🚀送上火星需要162天_
 
 这是系统初始化 `UIApplication` 和 `UIApplicationDelegate` 的阶段。  
 
-在大多数情况下，这是系统端的工作，设置*事件处理（event processing）*、以及与系统集成。
+在大多数情况下，这是系统端的工作，设置*事件处理（event processing）*以及与系统集成。
 
 但是如果开发者子类化了 `UIApplication` ，或者在 `UIApplicationDelegate` 的初始化方法中做了额外的工作，将会影响这阶段的耗时。  
 
@@ -187,3 +187,42 @@ _把🚀送上火星需要162天_
 
 - ✅ 减少 `UIApplication` 子类中的工作。
 - ✅ 减少 `UIApplicationDelegate` 初始化方法中的工作。
+
+## 4. Application Initialization
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-4.jpg)
+
+*Application* 初始化阶段是开发者对启动时间影响最大的阶段。
+
+**Lifecycle Callbacks**
+
+无论是否使用了 `UIScene` 相关的 *API* ，都会先调用 `UIApplicationDelegate` 的 *APP lifecycle callbacks* ：  
+
+```objc
+application:willFinishLaunchingWithOptions:
+application:didFinishLaunchingWithOptions:
+```
+
+- 如果没有使用 `UIScene` ，当 *UI* 展示给用户的时候，再调用 `UIApplicationDelegate` 的 *UI lifecycle callbacks* ：  
+
+```objc
+applicationDidBecomeActive:
+```
+
+- 如果使用了 `UIScene` ，当 *UI* 展现给用户时，会为每个 *scene* 调用 *UISceneDelegate UI lifecycle callbacks* ：  
+
+```objc
+scene:willConnectToSession:options:
+sceneWillEnterForeground:
+sceneDidBecomeActive:
+```
+
+建议：  
+
+- ✅ 推迟与 APP 启动无关的工作，或放在子线程执行
+- ✅ 如果使用了 `UIScene` ，请在 scene 之间共享资源，避免做重复的工作。
+
+`UIScene` 相关介绍请查看：
+
+- [Apple Article - Managing Your App's Life Cycle](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle?language=objc)
+- [WWDC 2019 - Introducing Multiple Windows on iPad](https://developer.apple.com/videos/play/wwdc2019/212)
