@@ -100,7 +100,7 @@ _把🚀送上火星需要162天_
 | APP 不在内存中 | APP 部分在内存中 | APP 全部在内存中 |
 | 进程不存在 | 进程不存在 | 进程存在 |
 
-# 启动的目标耗时：400毫秒
+## 启动的目标耗时：400毫秒
 
 在 **400 毫秒**内展示第一帧。  
 
@@ -136,7 +136,7 @@ _把🚀送上火星需要162天_
 
 **1.1** **dyld**
 
-*System Interface* 的前半部分是 *dyld（Dynamic Linker）*，它的作用是加载 *shared libraries* 和 *frameworks* 。
+*System Interface* 的前半部分是 *dyld（the dynamic link editor）*阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
 
 在 *WWDC 2017*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。但直到 2019 年，*iOS 13* 才开始使用 *dyld3* 。  
 
@@ -146,10 +146,10 @@ _把🚀送上火星需要162天_
 
 - *WWDC 2017* : [App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
 
-在使用 *dyld3* 时，有几个建议：  
+在 *dyld3* 阶段的几个建议：  
   
 - ✅ 避免链接未用到的 *frameworks* 。
-- ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了*缓存运行时依赖项*带来的好处。
+- ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了 *dyld3 缓存运行时依赖项*带来的好处。
 - ✅ 最后，（根据上一条）这意味着要*硬链接（Hard link）*所有的依赖，它比以前更快。
 
 **1.2** **libSystemInit**
