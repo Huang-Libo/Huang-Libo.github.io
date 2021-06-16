@@ -209,7 +209,7 @@ application:didFinishLaunchingWithOptions:
 applicationDidBecomeActive:
 ```
 
-- 如果使用了 `UIScene` ，当 *UI* 展现给用户时，会为每个 *scene* 调用 *UISceneDelegate UI lifecycle callbacks* ：  
+- 如果使用了 *iOS 13* 推出的 `UIScene` ，当 *UI* 展现给用户时，会为每个 *scene* 调用 `UISceneDelegate` 的 *UI lifecycle callbacks* ：  
 
 ```objc
 scene:willConnectToSession:options:
@@ -217,7 +217,7 @@ sceneWillEnterForeground:
 sceneDidBecomeActive:
 ```
 
-建议：  
+*Application Initialization* 阶段的建议：  
 
 - ✅ 推迟与 APP 启动无关的工作，或放在子线程执行
 - ✅ 如果使用了 `UIScene` ，请在 scene 之间共享资源，避免做重复的工作。
