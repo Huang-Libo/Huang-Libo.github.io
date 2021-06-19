@@ -33,6 +33,8 @@ tags: [WWDC 2019, iOS, APP Launch]
       - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
     - [5. First Frame Render](#5-first-frame-render)
     - [6. Extended Phase](#6-extended-phase)
+- [2. 正确地地测量 launch](#2-正确地地测量-launch)
+  - [控制变量](#控制变量)
 
 ## 前言
 
@@ -297,3 +299,16 @@ layoutSubviews
 建议：  
 
 - ✅ 使用 `os_signpost` 来测量这阶段的工作
+
+## 2. 正确地地测量 launch
+
+### 控制变量
+
+在任何时候，iOS 设备都处于各种不同的状态和条件下，这可能会给启动带来很大的变化。  
+
+所以，当我们分析和比较启动数据时，要控制变量、消除不可控因素，保障启动的*可预测性*和*一致性*。比如，消除*网络的干扰*和*后台进程的干扰*。  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-measurement-control-variables.png)
+_测量时要控制变量_
+
+这听起来违反直觉，因为这可能导致这样的启动并不是完全代表常规的使用方式，但这是没关系的，在测量启动数据时，更重要的是取得一致的结果，以此来评估进展。  
