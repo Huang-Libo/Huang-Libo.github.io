@@ -2,9 +2,42 @@
 title: "po、p、v 命令；LLDB 的自定义 Data Formatter；在 LLDB 中使用 Python 脚本"
 categories: [攻城狮, WWDC]
 tags: [WWDC 2019, iOS, LLDB]
----  
+---
 
-# 前言
+<p>
+  <h2>目录</h2>
+</p>
+
+- [前言](#前言)
+- [LLDB 常用命令 po、p、v](#lldb-常用命令-popv)
+  - [LLDB 常用命令一：po](#lldb-常用命令一po)
+    - [po 的常见用法](#po-的常见用法)
+    - [po 是 expression 命令的 alias](#po-是-expression-命令的-alias)
+    - [创建自定义的 alias](#创建自定义的-alias)
+    - [po 的原理](#po-的原理)
+  - [LLDB 常用命令二：p](#lldb-常用命令二p)
+    - [p 是 expression 命令的 alias](#p-是-expression-命令的-alias)
+    - [p 的原理](#p-的原理)
+  - [LLDB 常用命令三：v](#lldb-常用命令三v)
+    - [v 是 frame variable 命令的 alias](#v-是-frame-variable-命令的-alias)
+    - [v 的原理](#v-的原理)
+  - [po，p，v 的使用场景](#popv-的使用场景)
+- [自定义 Data Formatter](#自定义-data-formatter)
+  - [Filters](#filters)
+  - [Summary Strings](#summary-strings)
+- [Python 脚本在 LLDB 中的使用](#python-脚本在-lldb-中的使用)
+  - [简介](#简介)
+  - [在 Xcode Console 的交互界面中使用 Python](#在-xcode-console-的交互界面中使用-python)
+  - [加载 Python 脚本](#加载-python-脚本)
+  - [Synthetic Children](#synthetic-children)
+  - [在 Xcode Console 中添加的 Formatter 的有效期](#在-xcode-console-中添加的-formatter-的有效期)
+  - [脚本的自动加载](#脚本的自动加载)
+- [参考资料](#参考资料)
+  - [WWDC 2019 / 429](#wwdc-2019--429)
+  - [其他资料](#其他资料)
+- [Reference](#reference)
+
+## 前言
 
 [WWDC 2019 / 429 - LLDB: Beyond "po"](https://developer.apple.com/videos/play/wwdc2019/429/) 介绍了 *Xcode 11* 中 *LLDB* 的常用功能及其原理，演讲者来自 *Debugging Technologies Team* ，内容包含：  
 
@@ -16,9 +49,9 @@ tags: [WWDC 2019, iOS, LLDB]
 
 > 示例 project：[https://github.com/Bob-Playground/LLDB-Demo](https://github.com/Bob-Playground/LLDB-Demo)
 
-# LLDB 常用命令 po、p、v
+## LLDB 常用命令 po、p、v
 
-## LLDB 常用命令一：po
+### LLDB 常用命令一：po
 
 示例代码：
 
@@ -33,7 +66,7 @@ let cruise = Trip(
     destinations: ["Sorrento", "Capri", "Taormina"])
 ```
 
-### po 的常见用法
+#### po 的常见用法
 
 `po` 常见用法是打印变量：  
 
@@ -64,7 +97,7 @@ let cruise = Trip(
 
 `po` 还可以计算表达式，等等。  
 
-### po 是 expression 命令的 alias
+#### po 是 expression 命令的 alias
 
 > `po` 不是 LLDB 中的 first-class 命令。
 
@@ -82,7 +115,7 @@ help expression
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-help.jpg)
 
-### 创建自定义的 alias
+#### 创建自定义的 alias
 
 我们也可以创建自己的 *alias* ：
 
@@ -96,7 +129,7 @@ command alias my_po expression -O --
 my_po cruise
 ```
 
-### po 的原理
+#### po 的原理
 
 po 的执行流程如下，假如用户输入了 `po view` ：
 
@@ -116,7 +149,7 @@ extension Trip: CustomDebugStringConvertible {
 
 对于 `Objective-C`，则可覆盖 `debugDescription` 方法或 `description` 属性来实现自定义输出。  
 
-## LLDB 常用命令二：p
+### LLDB 常用命令二：p
 
 和 `po` 和类似的命令是 `p` ：
 
@@ -139,7 +172,7 @@ extension Trip: CustomDebugStringConvertible {
 "Mediterranean Cruise"
 ```
 
-### p 是 expression 命令的 alias
+#### p 是 expression 命令的 alias
 
 > `p` 不是 LLDB 中的 first-class 命令。
 
@@ -149,7 +182,7 @@ extension Trip: CustomDebugStringConvertible {
 expression cruise
 ```
 
-### p 的原理
+#### p 的原理
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-p-1.jpg)
 
@@ -188,7 +221,7 @@ expression --raw -- cruise
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-expression-raw.jpg){: .normal}
 
-## LLDB 常用命令三：v
+### LLDB 常用命令三：v
 
 在上面的例子中，我们需要强制转换 `cruise` 的类型，才能打印 `name`。其实 LLDB 的 `v` 命令，可以更便捷地完成这项任务：
 
@@ -196,7 +229,7 @@ expression --raw -- cruise
 
 从输出我们可以看到，`v cruise` 的输出和 `p cruise` 类似。但是，`p cruise.name` 报错了，而 `v cruise.name` 能正常打印 name。
 
-### v 是 frame variable 命令的 alias
+#### v 是 frame variable 命令的 alias
 
 实际上，`v` 是 Xcode 10.2 引入的 *alias*，`v cruise` 等效于：
 
@@ -204,7 +237,7 @@ expression --raw -- cruise
 frame variable cruise
 ```
 
-### v 的原理
+#### v 的原理
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-v-2.jpg)
 
@@ -214,7 +247,7 @@ frame variable cruise
 
 由于不需要编译和执行代码，`v` 的速度也比 `po` 或 `p` 快很多。但是，这也决定了 `v` 只能读取值，而**无法调用方法或计算表达式**。  
 
-## po，p，v 的使用场景
+### po，p，v 的使用场景
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-compare-po-p-v.jpg)
 
@@ -226,11 +259,11 @@ frame variable cruise
 - `v` 直接从内存读取变量，速度快，并且可以对读取的值**递归地**做 **动态类型解析**，但不能用于调用方法、计算表达式等。
 
 
-# 自定义 Data Formatter
+## 自定义 Data Formatter
 
 > *LLDB* 有一个 *Data Formatter Subsystem*，允许开发者为他们的变量自定义显示选项。[^1]  
 
-## Filters
+### Filters
 
 > 如果一个类型的成员变量很多，而我们只想看其中某个变量的值，则可为这个类型添加一个 *Filter*。
 
@@ -253,7 +286,7 @@ type filter add Travel.Trip --child name
 type filter delete Travel.Trip
 ```
 
-## Summary Strings
+### Summary Strings
 
 *Xcode Variables* 界面中会显示变量的 *Summary* ：  
 
@@ -288,7 +321,7 @@ type summary delete Travel.Trip
 
 上述例子有个问题：由于 *Formatter* 无法访问*计算变量（computed variables）*，如数组的元素总数，所以数组 index 只能*硬编码*。  
 
-# Python 脚本在 LLDB 中的使用
+## Python 脚本在 LLDB 中的使用
 
 > 从 *Xcode 11* 开始，*LLDB Scripting* 开始使用 *Python3* 。
 
@@ -299,7 +332,7 @@ type summary delete Travel.Trip
 - 可以使用 *Python* 进行任意的计算
 - Full access to *LLDB's Python API*
 
-## 简介
+### 简介
 
 *LLDB's Python API* : 即 *LLDB Scripting Bridge API*
 
@@ -308,7 +341,7 @@ type summary delete Travel.Trip
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-scripting-bridge.jpg)
 
-## 在 Xcode Console 的交互界面中使用 Python
+### 在 Xcode Console 的交互界面中使用 Python
 
 在 *Xcode Console* 中输入 `script` 命令进入到 *Python* 交互界面：  
 
@@ -382,7 +415,7 @@ Trip from (String) [0] = "Sorrento" to (String) [2] = "Taormina"
 Trip from "Sorrento" to "Taormina"
 ```
 
-## 加载 Python 脚本
+### 加载 Python 脚本
 
 可将上述操作写入名为 **Trip.py** 的脚本中，在其中添加 `SummaryProvider` 方法：  
 
@@ -422,7 +455,7 @@ type summary add Travel.Trip --python-function Trip.SummaryProvider
 
 ![](/images/WWDC/2019/429-LLDB-beyond-po/lldb-xcode-variable-3.jpg)
 
-## Synthetic Children
+### Synthetic Children
 
 > [https://lldb.llvm.org/use/variable.html#synthetic-children](https://lldb.llvm.org/use/variable.html#synthetic-children)
 
@@ -456,7 +489,7 @@ command script import ~/.lldb/Trip.py
 type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvider
 ```
 
-## 在 Xcode Console 中添加的 Formatter 的有效期
+### 在 Xcode Console 中添加的 Formatter 的有效期
 
 在 *Xcode Console* 中添加的 *Filters* 、*Summary Strings* 、*Synthetic Children* 等 *Formatter* 的有效期：  
 
@@ -469,7 +502,7 @@ type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvi
 
 - Xcode **退出（Quit）** 后，在 *Xcode Console* 中添加的 *Formatter* 就失效了，如果要再次使用，需要重新添加。
 
-## 脚本的自动加载
+### 脚本的自动加载
 
 对于一些需要长期使用的 *Formatter* ，每次启动 *Xcode* 后，都要在 *Xcode Console* 中手动加载脚本和手动添加 *Formatter* ，很繁琐。  
 
@@ -490,17 +523,17 @@ type synthetic add Travel.Trip --python-class Trip.ExampleSyntheticChildrenProvi
 
 
 
-# 参考资料
+## 参考资料
 
-## WWDC 2019 / 429
+### WWDC 2019 / 429
 
 - [https://developer.apple.com/videos/play/wwdc2019/429/](https://developer.apple.com/videos/play/wwdc2019/429/)  
 - [https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf](https://devstreaming-cdn.apple.com/videos/wwdc/2019/429s7ksrdjsg3bql/429/429_lldb_beyond_po.pdf)  
 
-## 其他资料
+### 其他资料
 
 - [https://xiaozhuanlan.com/topic/2683509174](https://xiaozhuanlan.com/topic/2683509174)  
 
-# Reference
+## Reference
 
 [^1]: *LLDB* 文档：[https://lldb.llvm.org/use/variable.html](https://lldb.llvm.org/use/variable.html)  
