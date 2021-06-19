@@ -4,7 +4,35 @@ categories: [攻城狮, WWDC]
 tags: [WWDC 2019, iOS, APP Launch]
 ---
 
-# 前言
+<p>
+  <h2>目录</h2>
+</p>
+
+- [前言](#前言)
+- [1. 什么是启动](#1-什么是启动)
+  - [暖场小故事](#暖场小故事)
+  - [为什么启动很重要](#为什么启动很重要)
+    - [1. 第一印象](#1-第一印象)
+    - [2. 可以反映整体的代码质量](#2-可以反映整体的代码质量)
+    - [3. 性能](#3-性能)
+  - [启动的类型](#启动的类型)
+    - [1. 冷启动](#1-冷启动)
+    - [2. 热启动](#2-热启动)
+    - [3. Resume](#3-resume)
+  - [不同启动类型的对比](#不同启动类型的对比)
+  - [启动的目标耗时：400毫秒](#启动的目标耗时400毫秒)
+  - [案例：Maps APP 的启动](#案例maps-app-的启动)
+  - [启动的 6 个阶段](#启动的-6-个阶段)
+    - [1. System Interface](#1-system-interface)
+      - [dyld](#dyld)
+      - [libSystemInit](#libsysteminit)
+    - [2. Static Runtime Initialization](#2-static-runtime-initialization)
+    - [3. UIKit Initialization](#3-uikit-initialization)
+    - [4. Application Initialization](#4-application-initialization)
+      - [APP Lifecycle Callbacks](#app-lifecycle-callbacks)
+      - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
+
+## 前言
 
 [WWDC 2019 / 423 - Optimizing App Launch](https://developer.apple.com/videos/play/wwdc2019/423/) 介绍了 *APP* 启动的流程，以及测量和优化启动的方法，演讲者来自 *Performance Team* 。内容包含：  
 
@@ -15,9 +43,9 @@ tags: [WWDC 2019, iOS, APP Launch]
 
 相关资源：笔者整理过的[讲稿（视频的字幕）](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2019/423-Optimizing-App-Launch/Optimizing-App-Launch-Edited.md)。
 
-# 什么是启动
+## 1. 什么是启动
 
-## 暖场小故事
+### 暖场小故事
 
 “全球的 *iOS* 设备*每天*要启动各种 *APP* 数十亿次。”  
 
@@ -34,35 +62,35 @@ tags: [WWDC 2019, iOS, APP Launch]
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-162-days-to-mars.jpg)
 _把🚀送上火星需要162天_
 
-## 为什么启动很重要
+### 为什么启动很重要
 
 > App launch is a user experience interruption.
 
 “*APP* 启动是用户体验的中断。”  
 
-### 1. 第一印象
+#### 1. 第一印象
 
 启动是用户对 *APP* 的第一印象，因此，它应该是令人愉悦的。  
 
 另外，开发者倾向于关注更新的设备，但我们得保障使用旧机型的用户也有比较好的 *APP* 使用体验。  
 
-### 2. 可以反映整体的代码质量
+#### 2. 可以反映整体的代码质量
 
 启动通常包含了大量的代码，包括 *primer coating*（？？）、*initialization*、*view creation* 等。
 
 因此，如果启动的体验不好，就暗示着代码中其他模块的使用体验可能也不好。  
 
-### 3. 性能
+#### 3. 性能
 
 对于手机来说，启动是一个非常紧张的时刻。它包含了大量的 *CPU* 和*内存*的工作。  
 
 因此，开发者应该尝试减少这部分的工作，因为它会影响*系统的性能*和*电池的消耗量*。  
 
-# 启动的类型
+### 启动的类型
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-1.jpg)
 
-## 1. 冷启动
+#### 1. 冷启动
 
 冷启动（*cold launch*）发生在重启后（或者 *APP* 很长时间没有被启动过）。
 
@@ -72,7 +100,7 @@ _把🚀送上火星需要162天_
 - 启动支撑 *APP* 运行的系统侧服务（*system-side services*）；
 - 创建 *APP* 的进程。
 
-## 2. 热启动
+#### 2. 热启动
 
 如果 *APP* 最近启动过，下次启动将会是热启动（*warm launch*）。  
 
@@ -80,7 +108,7 @@ _把🚀送上火星需要162天_
 
 因此，热启动要比冷启动要快一些。  
 
-## 3. Resume
+#### 3. Resume
 
 如果 *APP* 的进程还存在，当用户从 *Home screen* 或者 *APP switcher* 重新进入 *APP* 时，就是 *resume*。  
 
@@ -88,7 +116,7 @@ _把🚀送上火星需要162天_
 
 因此要注意：在做启动测量时，不要把启动和 *resume* 混淆了。
 
-## 不同启动类型的对比
+### 不同启动类型的对比
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-2.jpg)
 
@@ -100,13 +128,13 @@ _把🚀送上火星需要162天_
 | APP 不在内存中 | APP 部分在内存中 | APP 全部在内存中 |
 | 进程不存在 | 进程不存在 | 进程存在 |
 
-## 启动的目标耗时：400毫秒
+### 启动的目标耗时：400毫秒
 
 在 **400 毫秒**内展示第一帧。  
 
 也就是说，在启动动画（*launch animation*）完成前，就应该完成 *UI* 的展示；当启动动画结束后，*APP* 就应该是可交互的（*interactive*）、可响应的（*responsive*）。  
 
-# 案例：Maps APP 的启动
+### 案例：Maps APP 的启动
 
 用户点击了 *Maps* 的图标，系统开始执行启动：  
 
@@ -126,15 +154,15 @@ _把🚀送上火星需要162天_
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-4.jpg){: .normal width="600"}
 
-# 启动的 6 个阶段
+### 启动的 6 个阶段
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-overall.jpg)
 
-## 1. System Interface
+#### 1. System Interface
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-1.jpg)
 
-**1.1** **dyld**
+##### dyld
 
 *System Interface* 的前半部分是 *dyld（the dynamic link editor）*阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
 
@@ -152,13 +180,13 @@ _把🚀送上火星需要162天_
 - ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了 *dyld3 缓存运行时依赖项*带来的好处。
 - ✅ 最后，（根据上一条）这意味着要*硬链接（Hard link）*所有的依赖，它比以前更快。
 
-**1.2** **libSystemInit**
+##### libSystemInit
 
 *System Interface* 的后半部分是 *libSystemInit* 。在这个阶段，系统初始化 APP 内用到的*底层系统组件（low-level system components）*。  
 
 这主要是具有*固定时间开销*的系统端工作，*APP* 开发者不用太关心。  
 
-## 2. Static Runtime Initialization
+#### 2. Static Runtime Initialization
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-2.jpg)
 
@@ -173,7 +201,7 @@ _把🚀送上火星需要162天_
 - ✅ *Framework* 的开发者应该考虑暴露初始化的 *API* ，避免使用静态初始化。  
 - ✅ 如果一定要使用静态初始化，考虑把 `+load` 方法中的代码移到 `+initialize` 方法中。因为 `+load` 方法在每次启动 APP 的时候就会调用，而 `+initialize` 方法会在第一次使用这个*类*的时候调用。 
 
-## 3. UIKit Initialization
+#### 3. UIKit Initialization
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-3.jpg)
 
@@ -188,13 +216,13 @@ _把🚀送上火星需要162天_
 - ✅ 减少 `UIApplication` 子类中的工作。
 - ✅ 减少 `UIApplicationDelegate` 初始化方法中的工作。
 
-## 4. Application Initialization
+#### 4. Application Initialization
 
 ![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-4.jpg)
 
 *Application* 初始化阶段是开发者对启动时间影响最大的阶段。
 
-**Lifecycle Callbacks**
+##### APP Lifecycle Callbacks
 
 无论是否使用了 `UIScene` 相关的 *API* ，都会先调用 `UIApplicationDelegate` 的 *APP lifecycle callbacks* ：  
 
@@ -202,6 +230,8 @@ _把🚀送上火星需要162天_
 application:willFinishLaunchingWithOptions:
 application:didFinishLaunchingWithOptions:
 ```
+
+##### UI lifecycle callbacks
 
 - 如果没有使用 `UIScene` ，当 *UI* 展示给用户的时候，再调用 `UIApplicationDelegate` 的 *UI lifecycle callbacks* ：  
 
