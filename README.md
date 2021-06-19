@@ -1,6 +1,7 @@
 - [Blog 架构简介](#blog-架构简介)
 - [Jekyll 相关文档](#jekyll-相关文档)
 - [下载 & 安装依赖](#下载--安装依赖)
+	- [环境](#环境)
 - [Jekyll 启动本地 server](#jekyll-启动本地-server)
 - [Chirpy Theme](#chirpy-theme)
 	- [Chirpy Theme 相关文档](#chirpy-theme-相关文档)
@@ -11,6 +12,7 @@
 	- [Jekyll Run](#jekyll-run)
 	- [Markdown Preview Enhanced](#markdown-preview-enhanced)
 	- [Markdown All in One](#markdown-all-in-one)
+	- [markdownlint](#markdownlint)
 - [FAQ](#faq)
 	- [站点的 favicon 显示不对](#站点的-favicon-显示不对)
 	- [已经修改了网站，但没生效](#已经修改了网站但没生效)
@@ -30,13 +32,26 @@
 
 # Jekyll 相关文档
 
-https://jekyllrb.com/
+<https://jekyllrb.com/>
 
 # 下载 & 安装依赖
 
 重要：将仓库 *clone* 到**路径中不含空格**的目录中，以规避 `http_parser.rb` **0.6.0** 版本的 bug。  
 
-在项目根目录下执行 `bundle install` 。
+## 环境
+
+如果需要在多台 *Mac* 上通过云盘（ 如：*Dropbox* ）同步项目，建议：
+
+- 使用 *rvm* 安装同样版本的 *ruby* 。
+- *bundler* 的版本号要与 `Gemfile.lock` 中指定的保持一致。
+
+在项目根目录下指定 `bundle install` 的位置：
+
+```
+bundle install --path vendor/bundle
+```
+
+最后，在项目根目录下执行 `bundle install` 。
 
 # Jekyll 启动本地 server
 
@@ -44,11 +59,11 @@ https://jekyllrb.com/
 
 方法二：在 `Terminal` 内启动：
 
-```
+```bash
 bundle exec jekyll serve --drafts
 ```
 
-# Chirpy Theme 
+# Chirpy Theme
 
 ## Chirpy Theme 相关文档
 
@@ -64,7 +79,7 @@ bundle exec jekyll serve --drafts
 
 ## Chirpy Theme 集成的方式
 
-[本站点是使用RubyGems 方式安装的 Chirpy Theme](https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/docs/README.zh-CN.md#rubygems-%E5%AE%89%E8%A3%85)。   
+[本站点是使用RubyGems 方式安装的 Chirpy Theme](https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/docs/README.zh-CN.md#rubygems-%E5%AE%89%E8%A3%85)。  
 
 如果要升级主题，则去 `Gemfile` 中修改版本号：  
 
@@ -120,7 +135,7 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 
 ## Markdown All in One
 
-https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
+<https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one>
 
 功能：  
 
@@ -129,6 +144,12 @@ https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
   - 斜体：<kbd>Command</kbd> + <kbd>I</kbd>
 - 添加图片时有路径自动补全
 - 预览
+
+## markdownlint
+
+<https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint>
+
+规则：<https://github.com/DavidAnson/markdownlint/blob/main/doc/Rules.md>
 
 # FAQ
 
@@ -147,11 +168,11 @@ https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
 
 ## 执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题
 
-![](images/GitHub/http_parser-error.png)
+![http_parser-error](images/GitHub/http_parser-error.png)
 
 原因：路径中有**空格**引起的。
 
-当前站点源文件的路径为：    
+当前站点源文件的路径为：  
 
 ```
 ~/Library/Mobile Documents/iCloud~com~coderforart~iOS~MWeb/Documents/Huang-Libo.github.io
@@ -159,7 +180,7 @@ https://marketplace.visualstudio.com/items?itemName=yzhang.markdown-all-in-one
 
 一个解决方案是将相应目录中的空格去掉，但是这是一个 **iCloud Driver** 的路径，修改它会导致 **iCloud Driver** 无法正常使用。  
 
-这个问题是 `http_parser.rb` **0.6.0** 版本的 bug 引起的，已经在其 master 分支上修复了，但未打 tag 发布新版本。    
+这个问题是 `http_parser.rb` **0.6.0** 版本的 bug 引起的，已经在其 master 分支上修复了，但未打 tag 发布新版本。  
 
 解决方案：  
 
