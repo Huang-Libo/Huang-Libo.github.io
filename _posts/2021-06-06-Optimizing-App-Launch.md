@@ -31,6 +31,8 @@ tags: [WWDC 2019, iOS, APP Launch]
     - [4. Application Initialization](#4-application-initialization)
       - [APP Lifecycle Callbacks](#app-lifecycle-callbacks)
       - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
+    - [5. First Frame Render](#5-first-frame-render)
+    - [6. Extended Phase](#6-extended-phase)
 
 ## 前言
 
@@ -172,7 +174,7 @@ _把🚀送上火星需要162天_
 
 相关 *Session* ：
 
-- *WWDC 2017* : [App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
+- [WWDC 2017 / 413 - App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
 
 在 *dyld3* 阶段的几个建议：  
   
@@ -255,4 +257,43 @@ sceneDidBecomeActive:
 `UIScene` 相关介绍请查看：
 
 - [Apple Article - Managing Your App's Life Cycle](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle?language=objc)
-- [WWDC 2019 - Introducing Multiple Windows on iPad](https://developer.apple.com/videos/play/wwdc2019/212)
+- [WWDC 2019 / 212 - Introducing Multiple Windows on iPad](https://developer.apple.com/videos/play/wwdc2019/212)
+
+#### 5. First Frame Render
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-5.jpg)
+
+在这个阶段的任务是创建 view 、布局 view 、最后绘制 view 。  
+
+当系统拿到 view 的这些信息，就执行 `commit` 和 `render` ，完成第一帧的展示。  
+
+在这个阶段，会调用这些方法：  
+
+```objc
+loadView
+viewDidLoad
+layoutSubviews
+```
+
+建议有：  
+
+- ✅ 减少 view 的层级、懒加载不需要在启动时展示的 view 。
+- ✅ 优化 auto layout ，减少不必要的约束。
+
+相关 *Session* :    
+
+- [WWDC 2018 / 220 - High Performance Auto Layout](https://developer.apple.com/videos/play/wwdc2018/220/)
+
+#### 6. Extended Phase
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-6.jpg)
+
+- App-specific period after first frame
+- Displays asynchronously loaded data
+- App should be interactive and responsive
+
+在这个阶段可异步加载数据，加载完成后，给用户展示最终的页面。但是，在进入这个阶段之前，APP 就应该是*可交互、可响应*的，不能因为数据的加载而阻断 UI 交互。
+
+建议：  
+
+- ✅ 使用 `os_signpost` 来测量这阶段的工作
