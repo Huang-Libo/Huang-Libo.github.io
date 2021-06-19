@@ -19,7 +19,7 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
     - [macOS 的 Mail](#macos-的-mail)
     - [macOS 版的 WeChat](#macos-版的-wechat)
   - [使用 Runtime APIs](#使用-runtime-apis)
-- [2. Reletive Method Lists](#2-reletive-method-lists)
+- [2. 相对方法列表（ Reletive Method Lists ）](#2-相对方法列表-reletive-method-lists-)
   - [Objective-C 方法的 3 个部分](#objective-c-方法的-3-个部分)
   - [以 init 方法为例](#以-init-方法为例)
   - [进程中内存的划分](#进程中内存的划分)
@@ -31,12 +31,12 @@ tags: [WWDC 2020, iOS, Objective-C Runtime, class_rw_ext_t, Reletive Method List
   - [使用 Runtime APIs](#使用-runtime-apis-1)
 - [3. ARM64 架构上 Tagged Pointer 格式的变化](#3-arm64-架构上-tagged-pointer-格式的变化)
   - [普通的对象指针](#普通的对象指针)
-  - [Tagged pointer on Intel](#tagged-pointer-on-intel)
+  - [Intel](#intel)
     - [混淆 tagged pointer 的值](#混淆-tagged-pointer-的值)
     - [tag number 和 payload](#tag-number-和-payload)
     - [extended tag](#extended-tag)
     - [Swift 中的 tagged pointer](#swift-中的-tagged-pointer)
-  - [Tagged pointer on ARM64](#tagged-pointer-on-arm64)
+  - [ARM64](#arm64)
     - [iOS 13 中 tagged pointer 的格式](#ios-13-中-tagged-pointer-的格式)
     - [iOS 14 中 tagged pointer 格式的变化](#ios-14-中-tagged-pointer-格式的变化)
   - [使用 APIs](#使用-apis)
@@ -197,7 +197,7 @@ heap WeChat | egrep 'class_rw|COUNT'
 
 比如，代码直接去 `class_rw_t` 中读取 *Methods* ，在 *iOS 13* 上是可行的，但在 *iOS 14* 上 `class_rw_t` 中已经没有了 *Methods* ，它被挪动到了 `class_rw_ext_t` 中。  
 
-## 2. Reletive Method Lists
+## 2. 相对方法列表（ Reletive Method Lists ）
 
 > 在 *Binary Image* 中使用 **Reletive Method Lists** 。  
 
@@ -365,7 +365,7 @@ method's implementation
 
 可以看出，普通的*对象指针*的*低 3 位*和*高 16 位*一直是 0 。
 
-### Tagged pointer on Intel
+### Intel
 
 在**64位** *Intel* 平台的 *Mac* 上，如果把*最低位( bottom bit )* 设置为 1 ，就代表这个指针不是普通的*对象指针*，而是 *tagged pointer* ：  
 
@@ -411,7 +411,7 @@ method's implementation
 
 例如，一个 *Swift* `UUID` 类型可以是两个单词并且*内联( inline )* 保存，而不是分配一个单独的对象，因为它不适合放在指针中（???）。  
 
-### Tagged pointer on ARM64
+### ARM64
 
 #### iOS 13 中 tagged pointer 的格式
 
