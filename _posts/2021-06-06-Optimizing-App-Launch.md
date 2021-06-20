@@ -35,11 +35,15 @@ tags: [WWDC 2019, iOS, APP Launch]
     - [6. Extended Phase](#6-extended-phase)
 - [2. 正确地地测量 launch](#2-正确地地测量-launch)
   - [控制变量](#控制变量)
-  - [测量前的准备](#测量前的准备)
-    - [Reboot](#reboot)
-    - [iCloud](#icloud)
+  - [测量前的准备工作](#测量前的准备工作)
+    - [重启设备](#重启设备)
+    - [消除网络影响](#消除网络影响)
+    - [消除 iCloud 的影响](#消除-icloud-的影响)
     - [使用 release build](#使用-release-build)
     - [测量热启动](#测量热启动)
+    - [测量多份 mock 数据](#测量多份-mock-数据)
+  - [选择测量的机器](#选择测量的机器)
+  - [使用 XCTest 测量启动](#使用-xctest-测量启动)
 
 ## 前言
 
@@ -342,4 +346,22 @@ _测量时要控制变量_
 
 应该使用*热启动*进行测量，其测量结果是更加一致的（ *more consistent* ），因为 APP 的一部分可能已经在*内存*中，并且一些*系统端服务*可能已经在运行。  
 
+#### 测量多份 mock 数据
 
+开发者可能需要准备多份 mock 数据，来模拟不同数据规模对启动的影响。最好做到只加载显示第一帧所需的数据。  
+
+### 选择测量的机器
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-older-and-newer-devices.jpg){: .normal width="600"}
+
+在选择要测量机器时，请确保包含*最老支持的版本中的最老的设备*。以保障所有的用户都能有较好的 APP 启动体验。  
+
+### 使用 XCTest 测量启动
+
+开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP ，然后给出 APP 启动的统计数据。  
+
+![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
+
+相关 *Session* ：  
+
+[WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
