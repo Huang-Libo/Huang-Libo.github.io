@@ -66,13 +66,13 @@ tags: [WWDC 2019, iOS, APP Launch]
 
 他们计算的方式应该是这样的：  
 
-```
+```plaintext
 14*1,000,000,000/1000/60/60/24 ≈ 162天
 ```
 
 这个小故事和“全国每个人给我一块钱我就有 13 亿块钱了”有异曲同工之妙，哈哈。  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-162-days-to-mars.jpg)
+![APP-launch-162-days-to-mars](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-162-days-to-mars.jpg)
 _把🚀送上火星需要162天_
 
 ### 为什么启动很重要
@@ -101,7 +101,7 @@ _把🚀送上火星需要162天_
 
 ### 启动的类型
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-1.jpg)
+![APP-launch-type-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-1.jpg)
 
 #### 1. 冷启动
 
@@ -131,7 +131,7 @@ _把🚀送上火星需要162天_
 
 ### 不同启动类型的对比
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-2.jpg)
+![APP-launch-type-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-type-2.jpg)
 
 简单翻译一下：  
 
@@ -151,29 +151,29 @@ _把🚀送上火星需要162天_
 
 用户点击了 *Maps* 的图标，系统开始执行启动：  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-1.jpg){: .normal width="600"}
+![APP-launch-phases-Maps-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-1.jpg){: .normal width="600"}
 
 前 **100 毫秒**（紫色部分），*iOS* 系统会做初始化 *APP* 所需的系统侧工作：  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-2.jpg){: .normal width="600"}
+![APP-launch-phases-Maps-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-2.jpg){: .normal width="600"}
 
 这给了开发者大约 **300 毫秒**（绿色部分）的时间去创建视图、加载内容、生成 *APP* 的第一帧，也就是说，在 **400 毫秒**内完成启动并展示第一帧。  
 
 第一帧不需要是全部完成的状态，可以为异步加载的数据展示 *placeholder* ，但 *APP* 此时应该是可响应、可交互的。这个阶段完成后，用户可以搜索和查看自己的收藏，等等：  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-3.jpg){: .normal width="600"}
+![APP-launch-phases-Maps-3](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-3.jpg){: .normal width="600"}
 
 在接下来的几百毫秒里，当异步数据加载完成后，显示最终的页面：  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-4.jpg){: .normal width="600"}
+![APP-launch-phases-Maps-4](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-Maps-4.jpg){: .normal width="600"}
 
 ### 启动的 6 个阶段
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-overall.jpg)
+![APP-launch-phases-overall](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-overall.jpg)
 
 #### 1. System Interface
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-1.jpg)
+![APP-launch-phases-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-1.jpg)
 
 ##### dyld
 
@@ -201,7 +201,7 @@ _把🚀送上火星需要162天_
 
 #### 2. Static Runtime Initialization
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-2.jpg)
+![APP-launch-phases-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-2.jpg)
 
 这是系统初始化 *APP* 的 **Objective-C 和 Swift 的 Runtime** 的时候。  
 
@@ -212,11 +212,11 @@ _把🚀送上火星需要162天_
 下面给两个建议：  
 
 - ✅ *Framework* 的开发者应该考虑暴露初始化的 *API* ，避免使用静态初始化。  
-- ✅ 如果一定要使用静态初始化，考虑把 `+load` 方法中的代码移到 `+initialize` 方法中。因为 `+load` 方法在每次启动 APP 的时候就会调用，而 `+initialize` 方法会在第一次使用这个*类*的时候调用。 
+- ✅ 如果一定要使用静态初始化，考虑把 `+load` 方法中的代码移到 `+initialize` 方法中。因为 `+load` 方法在每次启动 APP 的时候就会调用，而 `+initialize` 方法会在第一次使用这个*类*的时候调用。  
 
 #### 3. UIKit Initialization
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-3.jpg)
+![APP-launch-phases-3](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-3.jpg)
 
 这是系统初始化 `UIApplication` 和 `UIApplicationDelegate` 的阶段。  
 
@@ -231,7 +231,7 @@ _把🚀送上火星需要162天_
 
 #### 4. Application Initialization
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-4.jpg)
+![APP-launch-phases-4](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-4.jpg)
 
 *Application* 初始化阶段是开发者对启动时间影响最大的阶段。
 
@@ -272,7 +272,7 @@ sceneDidBecomeActive:
 
 #### 5. First Frame Render
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-5.jpg)
+![APP-launch-phases-5](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-5.jpg)
 
 在这个阶段的任务是创建 view 、布局 view 、最后绘制 view 。  
 
@@ -291,13 +291,13 @@ layoutSubviews
 - ✅ 减少 view 的层级、懒加载不需要在启动时展示的 view 。
 - ✅ 优化 auto layout ，减少不必要的约束。
 
-相关 *Session* :    
+相关 *Session* :  
 
 - [WWDC 2018 / 220 - High Performance Auto Layout](https://developer.apple.com/videos/play/wwdc2018/220/)
 
 #### 6. Extended Phase
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-6.jpg)
+![APP-launch-phases-6](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-6.jpg)
 
 - App-specific period after first frame
 - Displays asynchronously loaded data
@@ -313,7 +313,7 @@ layoutSubviews
 
 ### 控制变量
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-measurement-control-variables.png)
+![APP-launch-measure-control-variables](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-measure-control-variables.png)
 _测量时要控制变量_
 
 在任何时候，iOS 设备都处于各种不同的状态和条件下，这可能会给启动带来很大的变化。  
@@ -352,7 +352,7 @@ _测量时要控制变量_
 
 ### 选择测量的机器
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-older-and-newer-devices.jpg){: .normal width="600"}
+![APP-launch-older-and-newer-devices](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-older-and-newer-devices.jpg){: .normal width="600"}
 
 在选择要测量机器时，请确保包含*最老支持的版本中的最老的设备*。以保障所有的用户都能有较好的 APP 启动体验。  
 
@@ -360,7 +360,7 @@ _测量时要控制变量_
 
 开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP ，然后给出 APP 启动的统计数据。  
 
-![](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
+![APP-launch-XCTest](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
 
 相关 *Session* ：  
 
