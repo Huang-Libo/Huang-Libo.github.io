@@ -376,15 +376,15 @@ _测量时要控制变量_
 
 #### 1. Minimize : 减少与启动无关的任务
 
-- ✅  延迟执行与展示第一帧不相关的任务
-- ✅  避免阻塞主线程
-- ✅  降低内存的使用
+- ✅ 延迟执行与展示第一帧不相关的任务
+- ✅ 避免阻塞主线程
+- ✅ 降低内存的使用
 
 #### 2. Prioritize : 确定任务的优先顺序
 
-- 为任务确定正确的 *QoS*
-- 利用 *scheduler* 为 APP 启动做的优化（ Utilize *scheduler* optimizations for app launch ）
-- 使用正确的原语保持优先级（ Preserve the priority with the right primitives ）
+- ✅ 为任务确定正确的 *QoS*
+- ✅ 利用 *scheduler* 为 APP 启动做的优化（ Utilize *scheduler* optimizations for app launch ）
+- ✅ 使用正确的原语保持优先级（ Preserve the priority with the right primitives ）
 
 相关 *Session* :  
 
@@ -392,7 +392,7 @@ _测量时要控制变量_
 
 #### 3. Optimize : 优化现有的任务
 
-- 简化或限制当前任务
-- 优化算法和数据结构
-- 缓存资源和计算结果
+- ✅ 简化或限制当前任务
+- ✅ 优化算法和数据结构
+- ✅ 缓存资源和计算结果
 
