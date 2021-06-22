@@ -33,7 +33,7 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
       - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
     - [5. First Frame Render](#5-first-frame-render)
     - [6. Extended Phase](#6-extended-phase)
-- [2. 正确地地测量 launch](#2-正确地地测量-launch)
+- [2. 正确地地测量启动](#2-正确地地测量启动)
   - [控制变量](#控制变量)
   - [测量前的准备工作](#测量前的准备工作)
     - [1. 重启设备](#1-重启设备)
@@ -44,6 +44,10 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [6. 准备多份 mock 数据](#6-准备多份-mock-数据)
   - [选择测量的机器](#选择测量的机器)
   - [使用 XCTest 测量启动](#使用-xctest-测量启动)
+  - [优化启动的步骤](#优化启动的步骤)
+    - [1. Minimize : 减少与启动无关的任务](#1-minimize--减少与启动无关的任务)
+    - [2. Prioritize : 确定任务的优先顺序](#2-prioritize--确定任务的优先顺序)
+    - [3. Optimize : 优化现有的任务](#3-optimize--优化现有的任务)
 
 ## 前言
 
@@ -309,7 +313,7 @@ layoutSubviews
 
 - ✅ 使用 `os_signpost` 来测量这阶段的工作
 
-## 2. 正确地地测量 launch
+## 2. 正确地地测量启动
 
 ### 控制变量
 
@@ -364,4 +368,31 @@ _测量时要控制变量_
 
 相关 *Session* ：  
 
-[WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
+- [WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
+
+### 优化启动的步骤
+
+![APP-launch-optimize-steps](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-optimize-steps.jpg)
+
+#### 1. Minimize : 减少与启动无关的任务
+
+- ✅  延迟执行与展示第一帧不相关的任务
+- ✅  避免阻塞主线程
+- ✅  降低内存的使用
+
+#### 2. Prioritize : 确定任务的优先顺序
+
+- 为任务确定正确的 *QoS*
+- 利用 *scheduler* 为 APP 启动做的优化（ Utilize *scheduler* optimizations for app launch ）
+- 使用正确的原语保持优先级（ Preserve the priority with the right primitives ）
+
+相关 *Session* :  
+
+- [WWDC 2017 / 706 - Modernizing Grand Central Dispatch Usage](https://developer.apple.com/videos/play/wwdc2017/706/)
+
+#### 3. Optimize : 优化现有的任务
+
+- 简化或限制当前任务
+- 优化算法和数据结构
+- 缓存资源和计算结果
+
