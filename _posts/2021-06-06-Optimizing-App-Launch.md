@@ -48,7 +48,7 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [1. Minimize : 减少与启动无关的任务](#1-minimize--减少与启动无关的任务)
     - [2. Prioritize : 确定任务的优先顺序](#2-prioritize--确定任务的优先顺序)
     - [3. Optimize : 优化现有的任务](#3-optimize--优化现有的任务)
-- [3. Demo：测量启动](#3-demo测量启动)
+- [3. Demo：测量启动的工具](#3-demo测量启动的工具)
   - [使用 Instrument - App Launch Template](#使用-instrument---app-launch-template)
     - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
     - [线程的状态（Thread State）](#线程的状态thread-state)
@@ -403,7 +403,7 @@ _测量时要控制变量_
 - ✅ 优化算法和数据结构
 - ✅ 缓存资源和计算结果
 
-## 3. Demo：测量启动
+## 3. Demo：测量启动的工具
 
 > 演讲人用一个 Demo 项目演示了 *App Launch Template* 的使用方法，这里只做个要点记录，代码详情可去看原视频。  
 
