@@ -55,8 +55,8 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [查看详情](#查看详情)
   - [使用 XCTest 测量启动](#使用-xctest-测量启动)
   - [长期追踪启动数据](#长期追踪启动数据)
-  - [使用 Xcode Organizer 收集启动数据](#使用-xcode-organizer-收集启动数据)
-  - [使用 MetricKit 收集更详细的统计数据](#使用-metrickit-收集更详细的统计数据)
+    - [1. 使用 Xcode Organizer 收集启动数据](#1-使用-xcode-organizer-收集启动数据)
+    - [2. 使用 MetricKit 收集更详细的统计数据](#2-使用-metrickit-收集更详细的统计数据)
 - [总结](#总结)
 - [相关文章](#相关文章)
 
@@ -454,7 +454,7 @@ XCTest 的测量结果中会显示*平均启动时间*：
 
 ![APP-launch-plot](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-plot.jpg){: .normal width="400"}
 
-### 使用 Xcode Organizer 收集启动数据
+#### 1. 使用 Xcode Organizer 收集启动数据
 
 ![APP-launch-Xcode-Organizer](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-Xcode-Organizer.jpg)
 
@@ -462,7 +462,7 @@ XCTest 的测量结果中会显示*平均启动时间*：
 
 - [WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
 
-### 使用 MetricKit 收集更详细的统计数据
+#### 2. 使用 MetricKit 收集更详细的统计数据
 
 - 收集自定义的能耗和性能指标
 - 汇总结果每 24 小时交付一次
