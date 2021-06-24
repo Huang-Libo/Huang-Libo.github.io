@@ -371,6 +371,10 @@ _测量时要控制变量_
 
 ![APP-launch-XCTest](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
 
+XCTest 的测量结果示例：  
+
+![APP-launch-demo-optimize-result](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-demo-optimize-result.jpg)
+
 相关 *Session* ：  
 
 - [WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
