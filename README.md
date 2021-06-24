@@ -15,6 +15,7 @@
 	- [markdownlint](#markdownlint)
 - [FAQ](#faq)
 	- [站点的 favicon 显示不对](#站点的-favicon-显示不对)
+	- [4000 端口已被占用](#4000-端口已被占用)
 	- [已经修改了网站，但没生效](#已经修改了网站但没生效)
 	- [执行 bundle install 失败：http_parser.rb (0.6.0) 导致的问题](#执行-bundle-install-失败http_parserrb-060-导致的问题)
 	- [修改 RubyGems 源](#修改-rubygems-源)
@@ -158,6 +159,28 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 可以去 `_site` 目录下看看素材是否正确，路径是 `_site/assets/img/favicons`。  
 
 生成的 favicon 素材来源于 `/assets/img/favicons` 目录，可将缺失的素材放入这个目录，然后重新构建站点。
+
+## 4000 端口已被占用
+
+执行 `bundle exec jekyll s` 报错 `bind: Address already in us`e ：
+
+```
+$HOME/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/socket.rb:201:in `bind': Address already in use - bind(2) for 127.0.0.1:4000 (Errno::EADDRINUSE)
+```
+
+查看端口占用：
+
+```
+❯ lsof -i :4000
+COMMAND  PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+ruby    5139    username   10u  IPv4 0x4c290c34da381ff3      0t0  TCP localhost:terabase (LISTEN)
+```
+
+杀掉相关线程：
+
+```
+kill 5139
+```
 
 ## 已经修改了网站，但没生效
 
