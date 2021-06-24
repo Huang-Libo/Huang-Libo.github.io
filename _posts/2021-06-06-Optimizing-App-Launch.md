@@ -48,6 +48,11 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [1. Minimize : 减少与启动无关的任务](#1-minimize--减少与启动无关的任务)
     - [2. Prioritize : 确定任务的优先顺序](#2-prioritize--确定任务的优先顺序)
     - [3. Optimize : 优化现有的任务](#3-optimize--优化现有的任务)
+- [3. Demo : 使用 App Launch Template](#3-demo--使用-app-launch-template)
+  - [App Launch Template](#app-launch-template)
+  - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
+  - [线程的状态（Thread State）](#线程的状态thread-state)
+  - [查看详情](#查看详情)
 
 ## 前言
 
@@ -396,3 +401,34 @@ _测量时要控制变量_
 - ✅ 优化算法和数据结构
 - ✅ 缓存资源和计算结果
 
+## 3. Demo : 使用 App Launch Template
+
+> 演讲人用一个 Demo 项目演示了 *App Launch Template* 的使用方法，这里只做个要点记录，代码详情可去看原视频。  
+
+在测量前，先执行 Profile ( <kbd>cmd</kbd> + <kbd>I</kbd> ) ，此时 Xcode 会以 *Release* 模式重新编译 APP ，编译和安装后，会自动打开 Instrument 。  
+
+### App Launch Template
+
+在 *Xcode 11* 中新增了 *App Launch Template* ，专门用于测量 APP 的启动：  
+
+![APP-launch-instrument](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument.jpg)
+
+### APP 生命周期（APP life cycle）
+
+- **紫色部分**发生在 `main` 方法调用前。
+- **绿色部分**发生在 `main` 方法调用后的早期阶段，APP 在这个阶段完成启动并绘制第一帧。
+- **蓝色部分**对应 *Extended phase* 。
+
+### 线程的状态（Thread State）
+
+- **灰色**表示线程**被阻塞了（Blocked）**，意味着线程没有做任何工作。
+- **红色**表示线程是**可运行的（Runnable）**，意味着有工作计划要完成，但缺乏CPU资源
+- **橙色**表示线程**被抢占了（Preempted）**，也就是说它正在做某项工作，但是被其他具有更高优先级的竞争性任务打断了。
+- **蓝色**表示线程**正在运行（Running）**，也就是说它正在使用 CPU 执行任务。
+
+### 查看详情
+
+当我们**三次点击**一个阶段时，我们可以突出显示该阶段并获得详细信息：  
+
+- 在左边，可以看到这段时间内正在完成的所有任务的详细*堆栈*跟踪。
+- 在右边，可以看到一个聚合的*堆栈*跟踪，它列出了按 CPU 样本大小的数量排序的所有*符号*（ all of the symbols ordered by the number of CPU sample size ）。
