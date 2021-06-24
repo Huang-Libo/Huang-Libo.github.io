@@ -1,5 +1,5 @@
 ---
-title: "[WIP]【2019】优化 APP 启动"
+title: "【2019】优化 APP 启动"
 categories: [攻城狮, WWDC]
 tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
 ---
