@@ -24,8 +24,8 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
   - [案例：Maps APP 的启动](#案例maps-app-的启动)
   - [启动的 6 个阶段](#启动的-6-个阶段)
     - [1. System Interface](#1-system-interface)
-      - [dyld](#dyld)
-      - [libSystemInit](#libsysteminit)
+      - [1.1 dyld](#11-dyld)
+      - [1.2 libSystemInit](#12-libsysteminit)
     - [2. Static Runtime Initialization](#2-static-runtime-initialization)
     - [3. UIKit Initialization](#3-uikit-initialization)
     - [4. Application Initialization](#4-application-initialization)
@@ -33,7 +33,8 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
       - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
     - [5. First Frame Render](#5-first-frame-render)
     - [6. Extended Phase](#6-extended-phase)
-- [2. 正确地地测量启动](#2-正确地地测量启动)
+  - [系统侧的优化](#系统侧的优化)
+- [2. 正确地测量启动](#2-正确地测量启动)
   - [控制变量](#控制变量)
   - [测量前的准备工作](#测量前的准备工作)
     - [1. 重启设备](#1-重启设备)
@@ -43,16 +44,21 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [5. 测量热启动](#5-测量热启动)
     - [6. 准备多份 mock 数据](#6-准备多份-mock-数据)
   - [选择测量的机器](#选择测量的机器)
-  - [使用 XCTest 测量启动](#使用-xctest-测量启动)
   - [优化启动的步骤](#优化启动的步骤)
     - [1. Minimize : 减少与启动无关的任务](#1-minimize--减少与启动无关的任务)
     - [2. Prioritize : 确定任务的优先顺序](#2-prioritize--确定任务的优先顺序)
     - [3. Optimize : 优化现有的任务](#3-optimize--优化现有的任务)
-- [3. Demo : 使用 App Launch Template](#3-demo--使用-app-launch-template)
-  - [App Launch Template](#app-launch-template)
-  - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
-  - [线程的状态（Thread State）](#线程的状态thread-state)
-  - [查看详情](#查看详情)
+- [3. Demo：测量启动](#3-demo测量启动)
+  - [使用 Instrument - App Launch Template](#使用-instrument---app-launch-template)
+    - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
+    - [线程的状态（Thread State）](#线程的状态thread-state)
+    - [查看详情](#查看详情)
+  - [使用 XCTest 测量启动](#使用-xctest-测量启动)
+  - [长期追踪启动数据](#长期追踪启动数据)
+  - [使用 Xcode Organizer 收集启动数据](#使用-xcode-organizer-收集启动数据)
+  - [使用 MetricKit 收集更详细的统计数据](#使用-metrickit-收集更详细的统计数据)
+- [总结](#总结)
+- [相关文章](#相关文章)
 
 ## 前言
 
@@ -184,7 +190,7 @@ _把🚀送上火星需要162天_
 
 ![APP-launch-phases-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-phases-1.jpg)
 
-##### dyld
+##### 1.1 dyld
 
 *System Interface* 的前半部分是 *dyld（the dynamic link editor）*阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
 
@@ -202,7 +208,7 @@ _把🚀送上火星需要162天_
 - ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了 *dyld3 缓存运行时依赖项*带来的好处。
 - ✅ 最后，（根据上一条）这意味着要*硬链接（Hard link）*所有的依赖，它比以前更快。
 
-##### libSystemInit
+##### 1.2 libSystemInit
 
 *System Interface* 的后半部分是 *libSystemInit* 。在这个阶段，系统初始化 APP 内用到的*底层系统组件（low-level system components）*。  
 
@@ -318,7 +324,13 @@ layoutSubviews
 
 - ✅ 使用 `os_signpost` 来测量这阶段的工作
 
-## 2. 正确地地测量启动
+### 系统侧的优化
+
+*iOS 13* 做了一系列优化，其中一些优化可显著地加快启动速度，如：引入 dyld3 、缓存运行时依赖项、Auto Layout 的优化，等等。
+
+![APP-launch-System-Improvements](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-System-Improvements.jpg)
+
+## 2. 正确地测量启动
 
 ### 控制变量
 
@@ -365,20 +377,6 @@ _测量时要控制变量_
 
 在选择要测量机器时，请确保包含*最老支持的系统版本中的最老的设备*。以保障所有的用户都能有较好的 APP 启动体验。  
 
-### 使用 XCTest 测量启动
-
-开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP ，然后给出 APP 启动的统计数据。  
-
-![APP-launch-XCTest](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
-
-XCTest 的测量结果示例：  
-
-![APP-launch-demo-optimize-result](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-demo-optimize-result.jpg)
-
-相关 *Session* ：  
-
-- [WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
-
 ### 优化启动的步骤
 
 ![APP-launch-optimize-steps](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-optimize-steps.jpg)
@@ -405,34 +403,76 @@ XCTest 的测量结果示例：
 - ✅ 优化算法和数据结构
 - ✅ 缓存资源和计算结果
 
-## 3. Demo : 使用 App Launch Template
+## 3. Demo：测量启动
 
 > 演讲人用一个 Demo 项目演示了 *App Launch Template* 的使用方法，这里只做个要点记录，代码详情可去看原视频。  
 
 在测量前，先执行 Profile ( <kbd>cmd</kbd> + <kbd>I</kbd> ) ，此时 Xcode 会以 *Release* 模式重新编译 APP ，编译和安装后，会自动打开 Instrument 。  
 
-### App Launch Template
+### 使用 Instrument - App Launch Template
 
 在 *Xcode 11* 中新增了 *App Launch Template* ，专门用于测量 APP 的启动：  
 
-![APP-launch-instrument](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument.jpg)
+![APP-launch-instrument-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument-1.jpg)
 
-### APP 生命周期（APP life cycle）
+#### APP 生命周期（APP life cycle）
 
 - **紫色部分**发生在 `main` 方法调用前。
 - **绿色部分**发生在 `main` 方法调用后的早期阶段，APP 在这个阶段完成启动并绘制第一帧。
-- **蓝色部分**对应 *Extended phase* 。
+- **蓝色部分**对应 *Extended phase* ，做一些异步的任务，拿到数据后再绘制最终的视图。
 
-### 线程的状态（Thread State）
+#### 线程的状态（Thread State）
 
 - **灰色**表示线程**被阻塞了（Blocked）**，意味着线程没有做任何工作。
 - **红色**表示线程是**可运行的（Runnable）**，意味着有工作计划要完成，但缺乏CPU资源
 - **橙色**表示线程**被抢占了（Preempted）**，也就是说它正在做某项工作，但是被其他具有更高优先级的竞争性任务打断了。
 - **蓝色**表示线程**正在运行（Running）**，也就是说它正在使用 CPU 执行任务。
 
-### 查看详情
+#### 查看详情
 
-当我们**三次点击**一个阶段时，我们可以突出显示该阶段并获得详细信息：  
+**三击**一个阶段，可以突出显示该阶段并获得详细信息：  
+
+![APP-launch-instrument-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument-2.jpg)
 
 - 在左边，可以看到这段时间内正在完成的所有任务的详细*堆栈*跟踪。
 - 在右边，可以看到一个聚合的*堆栈*跟踪，它列出了按 CPU 样本大小的数量排序的所有*符号*（ all of the symbols ordered by the number of CPU sample size ）。
+
+### 使用 XCTest 测量启动
+
+开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP ，然后给出 APP 启动的统计数据。  
+
+![APP-launch-XCTest](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
+
+XCTest 的测量结果中会显示*平均启动时间*：  
+
+![APP-launch-demo-optimize-result](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-demo-optimize-result.jpg)
+
+### 长期追踪启动数据
+
+- 开发时就要关注 APP 的性能（Make performance a development-time priority）
+- 为启动时间设置一个目标值，并绘图
+
+![APP-launch-plot](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-plot.jpg){: .normal width="400"}
+
+### 使用 Xcode Organizer 收集启动数据
+
+![APP-launch-Xcode-Organizer](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-Xcode-Organizer.jpg)
+
+相关 *Session* ：  
+
+- [WWDC 2019 / 417 - Improving Battery Life and Performance](https://developer.apple.com/videos/play/wwdc2019/417/)
+
+### 使用 MetricKit 收集更详细的统计数据
+
+- 收集自定义的能耗和性能指标
+- 汇总结果每 24 小时交付一次
+
+## 总结
+
+- 理解启动的各个阶段
+- 使用工具去测量启动的性能，而不是估算
+- 在开发的各个阶段都要追踪 APP 的性能
+
+## 相关文章
+
+- <https://xiaozhuanlan.com/topic/4690823715>
