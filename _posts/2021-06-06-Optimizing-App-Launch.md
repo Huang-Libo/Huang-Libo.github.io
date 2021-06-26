@@ -52,7 +52,10 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
   - [使用 Instrument - App Launch Template](#使用-instrument---app-launch-template)
     - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
     - [线程的状态（Thread State）](#线程的状态thread-state)
-    - [查看详情](#查看详情)
+    - [查看启动阶段的详情](#查看启动阶段的详情)
+    - [CPU clock & Wall clock](#cpu-clock--wall-clock)
+    - [QoS & 避免优先级反转](#qos--避免优先级反转)
+    - [代码分析](#代码分析)
   - [使用 XCTest 测量启动](#使用-xctest-测量启动)
   - [长期追踪启动数据](#长期追踪启动数据)
     - [1. 使用 Xcode Organizer 收集启动数据](#1-使用-xcode-organizer-收集启动数据)
@@ -326,7 +329,9 @@ layoutSubviews
 
 ### 系统侧的优化
 
-*iOS 13* 做了一系列优化，其中一些优化可显著地加快启动速度，如：引入 dyld3 、缓存运行时依赖项、Auto Layout 的优化，等等。
+*iOS 13* 做了一系列优化，其中一些优化可显著地加快启动速度，如：引入 dyld3 、缓存 APP 的运行时依赖项、Auto Layout 的优化、Scheduler 的优化、Runtime 的优化，等等。
+
+开发者只需要稍作调整，甚至都不需要做任何事情，启动就会变得更快。
 
 ![APP-launch-System-Improvements](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-System-Improvements.jpg)
 
@@ -428,18 +433,90 @@ _测量时要控制变量_
 - **橙色**表示线程**被抢占了（Preempted）**，也就是说它正在做某项工作，但是被其他具有更高优先级的竞争性任务打断了。
 - **蓝色**表示线程**正在运行（Running）**，也就是说它正在使用 CPU 执行任务。
 
-#### 查看详情
+#### 查看启动阶段的详情
 
-**三击**一个阶段，可以突出显示该阶段并获得详细信息：  
+**三击**一个启动阶段，可以突出显示该阶段并获得详细信息：  
 
 ![APP-launch-instrument-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument-2.jpg)
 
 - 在左边，可以看到这段时间内正在完成的所有任务的详细*堆栈*跟踪。
 - 在右边，可以看到一个聚合的*堆栈*跟踪，它列出了按 CPU 样本大小的数量排序的所有*符号*（ all of the symbols ordered by the number of CPU sample size ）。
 
+#### CPU clock & Wall clock
+
+在示例 demo 的 system interfaces 阶段， wall clock（挂钟，即现实世界的时间）显示有 **149ms**，但 CPU clock（CPU 时钟）只有 **6ms**。  
+
+- Wall clock：  
+
+![App-launch-wall-clock.jpg](/images/WWDC/2019/423-Optimizing-App-Launch/App-launch-wall-clock.jpg)
+
+- CPU clock：  
+
+![App-launch-CPU-clock.jpg](/images/WWDC/2019/423-Optimizing-App-Launch/App-launch-CPU-clock.jpg)
+
+这个差异来自测量机制本身的耗时，CPU clock 的数据剔除了这部分时间，因此，我们应该以调用栈中显示的 CPU clock 耗时为准。  
+
+#### QoS & 避免优先级反转
+
+- QoS 47 ：user interactive QoS ，主线程使用此 QoS 。
+- QoS 4 ：background QoS 。
+- ... (还有一些其他的 QoS 这里没写)
+
+从下图可以看出，主线程被阻塞了（灰色），而子线程有很多任务需要运行，但是缺乏 CPU 资源（红色）。
+
+将菜单切换到 `Events: Thread States` ，可以查看线程的状态：
+
+![App-launch-thread-states-1.jpg](/images/WWDC/2019/423-Optimizing-App-Launch/App-launch-thread-states-1.jpg)
+
+线程的状态：  
+
+![App-launch-thread-states-2.jpg](/images/WWDC/2019/423-Optimizing-App-Launch/App-launch-thread-states-2.jpg)
+
+主线程的状态中有这样一行：
+
+```
+make runnable by __thread_selfid 0x12253 running on Core 1
+```
+
+说明主线程是被这个子线程设置为 runnable 的，因此，主线程的阻塞是这个子线程造成的。
+
+子线程的信息：  
+
+- 名称：`__thread_selfid`
+- 地址：`0x12253`
+
+点击子线程，可以看到，它的 QoS 是 4 ，也就是 background QoS ：
+
+![App-launch-thread-states-3.jpg](/images/WWDC/2019/423-Optimizing-App-Launch/App-launch-thread-states-3.jpg)
+
+显然，这里存在*优先级反转（priority inversion）*的问题，也就是说，高优先级、高 QoS 的线程，被低优先级、低 QoS 的线程阻塞了。
+
+#### 代码分析
+
+在 `StarDataProvider` 类中，创建了一个串行队列，QoS 是 background 。有两个加载数据的方法：
+
+- `loadDataAsync` ：异步地加载数据
+- `loadDataSync` ：同步地加载数据
+
+![APP-launch-priority-inversion-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-1.jpg)
+
+在 AppDelegate 中，调用了 `loadDataAsync` 方法异步加载数据。由于这个 APP 的需求是拿到数据后才能执行后续任务，因此又使用信号量来阻塞主线程，直到数据加载任务完成后，才继续执行后续任务：  
+
+![APP-launch-priority-inversion-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-2.jpg)  
+
+乍一看没问题，但是要注意，该子线程的 priority 是 4 ，如果有另一个 priority 更高（比如 20）的线程 A 在执行耗 CPU 的任务，那么会导致 priority 为 4 的线程缺乏 CPU 资源去执行任务，只能等线程 A 完成任务腾出 CPU 资源，才能继续执行。这导致了主线程实际上要等待不相干的线程 A 的任务完成，实际上这完全是没必要的。  
+
+这里应该使用 `loadDataSync` 方法：
+
+![APP-launch-priority-inversion-3](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-3.jpg)
+
+**使用 sync 方法后，GCD 会暂时将主线程的优先级传播给这个子线程**，主线程会等子线程完成任务后再恢复到活跃状态，不会被 priority 为 20 的线程 A 所影响，优先级反转问题迎刃而解。
+
 ### 使用 XCTest 测量启动
 
-开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP ，然后给出 APP 启动的统计数据。  
+开发者可以利用 *Xcode 11* 中新增的 `XCTest` API 来测量 APP 的启动性能。只需几行代码，*Xcode* 就可以反复启动 APP（默认值是 5 次），然后给出 APP 启动的统计数据。  
+
+XCTest 会做一个*抛弃型的登录（throwaway launch）*，这将消除冷启动带来的差异。
 
 ![APP-launch-XCTest](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-XCTest.jpg)
 
@@ -449,12 +526,16 @@ XCTest 的测量结果中会显示*平均启动时间*：
 
 ### 长期追踪启动数据
 
-- 开发时就要关注 APP 的性能（Make performance a development-time priority）
-- 为启动时间设置一个目标值，并绘图
+- 开发时就要关注 APP 的性能（**Make performance a development-time priority**）
+- 为启动时间设置一个目标值，并用图表展示版本迭代过程中 APP 启动时间的走势
 
 ![APP-launch-plot](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-plot.jpg){: .normal width="400"}
 
 #### 1. 使用 Xcode Organizer 收集启动数据
+
+在 *iOS 13* 中，对于选择加入的用户，APP 的性能指标将被收集。
+
+然后，它们将在 24 小时内汇总，并发送给 Xcode Organizer ，开发者可以通过 *APP version* 和 *device version* 的直方图查看这些数据。
 
 ![APP-launch-Xcode-Organizer](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-Xcode-Organizer.jpg)
 
