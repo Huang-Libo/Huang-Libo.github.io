@@ -51,10 +51,11 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
 - [3. Demo：测量启动的工具](#3-demo测量启动的工具)
   - [使用 Instrument - App Launch Template](#使用-instrument---app-launch-template)
     - [APP 生命周期（APP life cycle）](#app-生命周期app-life-cycle)
-    - [线程的状态（Thread State）](#线程的状态thread-state)
+    - [线程状态（Thread State）](#线程状态thread-state)
     - [查看启动阶段的详情](#查看启动阶段的详情)
     - [CPU clock & Wall clock](#cpu-clock--wall-clock)
-    - [QoS & 避免优先级反转](#qos--避免优先级反转)
+    - [线程的优先级](#线程的优先级)
+    - [线程优先级反转的问题](#线程优先级反转的问题)
     - [代码分析](#代码分析)
   - [使用 XCTest 测量启动](#使用-xctest-测量启动)
   - [长期追踪启动数据](#长期追踪启动数据)
@@ -426,7 +427,7 @@ _测量时要控制变量_
 - **绿色部分**发生在 `main` 方法调用后的早期阶段，APP 在这个阶段完成启动并绘制第一帧。
 - **蓝色部分**对应 *Extended phase* ，做一些异步的任务，拿到数据后再绘制最终的视图。
 
-#### 线程的状态（Thread State）
+#### 线程状态（Thread State）
 
 - **灰色**表示线程**被阻塞了（Blocked）**，意味着线程没有做任何工作。
 - **红色**表示线程是**可运行的（Runnable）**，意味着有工作计划要完成，但缺乏CPU资源。
@@ -439,12 +440,12 @@ _测量时要控制变量_
 
 ![APP-launch-instrument-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-instrument-2.jpg)
 
-- 在左边，可以看到这段时间内正在完成的所有任务的详细*堆栈*跟踪。
+- 在左边，可以看到这段时间内所有任务的详细*堆栈*跟踪。
 - 在右边，可以看到一个聚合的*堆栈*跟踪，它列出了按 CPU 样本大小的数量排序的所有*符号*（ all of the symbols ordered by the number of CPU sample size ）。
 
 #### CPU clock & Wall clock
 
-在示例 demo 的 system interfaces 阶段， wall clock（挂钟，即现实世界的时间）显示有 **149ms**，但 CPU clock（CPU 时钟）只有 **6ms**。  
+在示例 demo 的 *system interfaces* 阶段， *wall clock*（挂钟，即现实世界的时间）显示有 **149ms**，但 *CPU clock*（CPU 时钟）只有 **6ms**。  
 
 - Wall clock：  
 
@@ -456,11 +457,13 @@ _测量时要控制变量_
 
 这个差异来自测量机制本身的耗时，CPU clock 的数据剔除了这部分时间，因此，我们应该以调用栈中显示的 CPU clock 耗时为准。  
 
-#### QoS & 避免优先级反转
+#### 线程的优先级
 
-- QoS 47 ：user interactive QoS ，主线程使用此 QoS 。
-- QoS 4 ：background QoS 。
+- Priority 47 ：user interactive QoS ，主线程使用此 QoS 。
+- Priority 4 ：background QoS 。
 - ... (还有一些其他的 QoS 这里没写)
+
+#### 线程优先级反转的问题
 
 从下图可以看出，主线程被阻塞了（灰色），而子线程有很多任务需要运行，但是缺乏 CPU 资源（红色）。
 
@@ -493,18 +496,18 @@ make runnable by __thread_selfid 0x12253 running on Core 1
 
 #### 代码分析
 
-在 `StarDataProvider` 类中，创建了一个串行队列，QoS 是 background 。有两个加载数据的方法：
+在 `StarDataProvider` 类中，创建了一个串行队列，QoS 是 `.background` 。有两个加载数据的方法：
 
 - `loadDataAsync` ：异步地加载数据
 - `loadDataSync` ：同步地加载数据
 
 ![APP-launch-priority-inversion-1](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-1.jpg)
 
-在 AppDelegate 中，调用了 `loadDataAsync` 方法异步加载数据。由于这个 APP 的需求是拿到数据后才能执行后续任务，因此又使用信号量来阻塞主线程，直到数据加载任务完成后，才继续执行后续任务：  
+在 `AppDelegate` 中，调用了 `loadDataAsync` 方法异步加载数据。由于这个 APP 的需求是拿到数据后才能执行后续任务，因此又使用**信号量**来阻塞主线程，直到数据加载任务完成后，才继续执行后续任务：  
 
 ![APP-launch-priority-inversion-2](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-2.jpg)  
 
-乍一看没问题，但是要注意，该子线程的 priority 是 4 ，如果有另一个 priority 更高（比如 20）的线程 A 在执行耗 CPU 的任务，那么会导致 priority 为 4 的线程缺乏 CPU 资源去执行任务，只能等线程 A 完成任务腾出 CPU 资源，才能继续执行。这导致了主线程实际上要等待不相干的线程 A 的任务完成，实际上这完全是没必要的。  
+乍一看没问题，但是要注意，该子线程的 priority 是 4 ，如果有另一个 priority 更高（比如 20）的线程 A 在执行耗 CPU 的任务，那么会导致 priority 为 4 的线程缺乏 CPU 资源去执行任务，只能等线程 A 完成任务腾出 CPU 资源，才能继续执行。**这导致了主线程要等待不相干的线程 A 的任务完成**，实际上这完全是没必要的。  
 
 这里应该使用 `loadDataSync` 方法：
 
