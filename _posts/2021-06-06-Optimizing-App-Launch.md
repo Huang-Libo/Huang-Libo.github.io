@@ -429,7 +429,7 @@ _测量时要控制变量_
 #### 线程的状态（Thread State）
 
 - **灰色**表示线程**被阻塞了（Blocked）**，意味着线程没有做任何工作。
-- **红色**表示线程是**可运行的（Runnable）**，意味着有工作计划要完成，但缺乏CPU资源
+- **红色**表示线程是**可运行的（Runnable）**，意味着有工作计划要完成，但缺乏CPU资源。
 - **橙色**表示线程**被抢占了（Preempted）**，也就是说它正在做某项工作，但是被其他具有更高优先级的竞争性任务打断了。
 - **蓝色**表示线程**正在运行（Running）**，也就是说它正在使用 CPU 执行任务。
 
@@ -474,7 +474,7 @@ _测量时要控制变量_
 
 主线程的状态中有这样一行：
 
-```
+```plaintext
 make runnable by __thread_selfid 0x12253 running on Core 1
 ```
 
@@ -510,7 +510,7 @@ make runnable by __thread_selfid 0x12253 running on Core 1
 
 ![APP-launch-priority-inversion-3](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-priority-inversion-3.jpg)
 
-**使用 sync 方法后，GCD 会暂时将主线程的优先级传播给这个子线程**，主线程会等子线程完成任务后再恢复到活跃状态，不会被 priority 为 20 的线程 A 所影响，优先级反转问题迎刃而解。
+**使用 sync 方法后，GCD 会暂时将主线程的优先级（priority=47）传播给这个子线程**，主线程会等子线程完成任务后再恢复到活跃状态，不会被 priority 为 20 的线程 A 所影响，优先级反转问题迎刃而解。
 
 ### 使用 XCTest 测量启动
 
