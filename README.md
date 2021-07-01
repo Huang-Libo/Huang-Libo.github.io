@@ -15,6 +15,7 @@
 	- [markdownlint](#markdownlint)
 - [FAQ](#faq)
 	- [站点的 favicon 显示不对](#站点的-favicon-显示不对)
+	- [图片的格式及图片的压缩](#图片的格式及图片的压缩)
 	- [关闭 smooth scroll](#关闭-smooth-scroll)
 	- [4000 端口已被占用](#4000-端口已被占用)
 	- [已经修改了网站，但没生效](#已经修改了网站但没生效)
@@ -160,6 +161,11 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 可以去 `_site` 目录下看看素材是否正确，路径是 `_site/assets/img/favicons`。  
 
 生成的 favicon 素材来源于 `/assets/img/favicons` 目录，可将缺失的素材放入这个目录，然后重新构建站点。
+
+## 图片的格式及图片的压缩
+
+- jpg 比 png 更省空间
+- 使用 TinyPng 可以压缩 jpg、png 图片
 
 ## 关闭 smooth scroll
 
