@@ -29,7 +29,7 @@ tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
     - [2. Static Runtime Initialization](#2-static-runtime-initialization)
     - [3. UIKit Initialization](#3-uikit-initialization)
     - [4. Application Initialization](#4-application-initialization)
-      - [APP Lifecycle Callbacks](#app-lifecycle-callbacks)
+      - [APP lifecycle callbacks](#app-lifecycle-callbacks)
       - [UI lifecycle callbacks](#ui-lifecycle-callbacks)
     - [5. First Frame Render](#5-first-frame-render)
     - [6. Extended Phase](#6-extended-phase)
@@ -254,7 +254,7 @@ _把🚀送上火星需要162天_
 
 *Application* 初始化阶段是开发者对启动时间影响最大的阶段。
 
-##### APP Lifecycle Callbacks
+##### APP lifecycle callbacks
 
 无论是否使用了 `UIScene` 相关的 *API* ，都会先调用 `UIApplicationDelegate` 的 *APP lifecycle callbacks* ：  
 
