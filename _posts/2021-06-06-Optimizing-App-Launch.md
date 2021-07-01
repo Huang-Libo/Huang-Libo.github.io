@@ -196,7 +196,17 @@ _把🚀送上火星需要162天_
 
 ##### 1.1 dyld
 
-*System Interface* 的前半部分是 *dyld（the dynamic link editor）*阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
+*System Interface* 的前半部分是 **dyld（the dynamic linker）**阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
+
+查看 dyld 的文档：  
+
+```bash
+man dyld
+```
+
+输出：  
+
+![APP-Launch-man-dyld](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-man-dyld.jpg)
 
 在 *WWDC 2017*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。但直到 2019 年，*iOS 13* 才开始使用 *dyld3* 。  
 
