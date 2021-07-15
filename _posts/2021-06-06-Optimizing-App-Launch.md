@@ -208,13 +208,16 @@ man dyld
 
 ![APP-Launch-man-dyld](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-man-dyld.jpg)
 
-在 *WWDC 2017*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。但直到 2019 年，*iOS 13* 才开始使用 *dyld3* 。  
+在 *WWDC17*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。  
+
+- 2017 年，*iOS 11* 的系统自带 APP 开始使用 *dyld3* ，第三方 APP 还是使用 *dyld2.x* 。
+- 2019 年，*iOS 13* 开始全面使用 *dyld3* 。  
 
 在使用 *dyld3* 后，系统会*缓存运行时依赖项（caching runtime dependencies）*，这给*热启动*带来显著的速度改进。  
 
 相关 *Session* ：
 
-- [WWDC 2017 / 413 - App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
+- [WWDC17 / 413 - App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
 
 在 *dyld3* 阶段的几个建议：  
   
@@ -411,7 +414,7 @@ _测量时要控制变量_
 
 相关 *Session* :  
 
-- [WWDC 2017 / 706 - Modernizing Grand Central Dispatch Usage](https://developer.apple.com/videos/play/wwdc2017/706/)
+- [WWDC17 / 706 - Modernizing Grand Central Dispatch Usage](https://developer.apple.com/videos/play/wwdc2017/706/)
 
 #### 3. Optimize : 优化现有的任务
 
