@@ -14,6 +14,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [术语](#术语)
   - [启动时间（Startup Time）](#启动时间startup-time)
   - [启动闭包（Launch Closure）](#启动闭包launch-closure)
+  - [Darwin 里的 dyld 的全称](#darwin-里的-dyld-的全称)
 - [回顾 WWDC16：优化 APP 启动时间的建议](#回顾-wwdc16优化-app-启动时间的建议)
   - [减少启动阶段的任务](#减少启动阶段的任务)
   - [多使用 Swift](#多使用-swift)
@@ -37,6 +38,16 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - APP 使用了哪些 **dylib** 。
 - APP 内使用的各种**符号（symbols）的偏移量（offsets）**。
 - APP 的**代码签名（code signatures）**的位置。
+
+### Darwin 里的 dyld 的全称
+
+一些博文在介绍 `dyld` 时写错了其英文全称，那个全称是 `FreeBSD` 上使用的，这里为了防止大家记成错的，就不提那个名称了。
+
+虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 的名称有自己的解释。
+
+在终端使用 `man dyld` 查看文档，可看出其全称是 **the dynamic linker** ：
+
+![APP-launch-man-dyld](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-man-dyld.jpg)
 
 ## 回顾 WWDC16：优化 APP 启动时间的建议
 
