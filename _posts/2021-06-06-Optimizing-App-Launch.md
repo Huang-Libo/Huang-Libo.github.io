@@ -206,7 +206,7 @@ man dyld
 
 输出：  
 
-![APP-Launch-man-dyld](/images/WWDC/2019/423-Optimizing-App-Launch/APP-launch-man-dyld.jpg)
+![man_dyld.jpg](/images/WWDC/common/man_dyld.jpg)
 
 在 *WWDC17*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。  
 
