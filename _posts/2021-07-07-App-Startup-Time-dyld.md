@@ -18,6 +18,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [回顾 WWDC16：优化 APP 启动时间的建议](#回顾-wwdc16优化-app-启动时间的建议)
   - [减少启动阶段的任务](#减少启动阶段的任务)
   - [多使用 Swift](#多使用-swift)
+- [Instruments: Static initializer tracing](#instruments-static-initializer-tracing)
 
 ## 前言
 
@@ -60,7 +61,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 多使用 Swift
 
-`Swift` 避免了 `C` , `C++` 和 `Objective-C` 的许多隐患。
+`Swift` 可避开 `C` , `C++` 和 `Objective-C` 中的许多隐患。
 
 - `Swift` 没有 `initializer` 。
 - `Swift` 改善了大小。
@@ -70,3 +71,20 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 - [WWDC16 - Session406: \<Optimizing App Startup Time\>](https://developer.apple.com/videos/play/wwdc2016/406/)
   - (链接已打不开，不知为何下掉了，但在 [wwdc.io](https://wwdc.io) 的 macOS 应用中可以查看)
+
+## Instruments: Static initializer tracing
+
+静态初始化器的代码必须在 `main()` 之前调用，而开发者对 `main()` 之前发生的事缺乏可视的观测方式。
+
+在 *iOS 11* 和 *macOS High Sierra* 的内核与 `dyld` 中新增了相关基础设施（infrastructure），因此可使用 Instruments 中新增的 **Static Initializer Calls** 为每个**静态初始化器（Static Initializer）**提供精确的计时：
+
+![Instruments-Static-Initializer-Tracing.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/Instruments-Static-Initializer-Tracing.jpeg){: .normal width="350"}
+
+添加方式：  
+
+- Instruments
+  - Blank（空模板）
+    - 点击右上角的 `+` 按钮
+      - 在弹出的页面中搜索 **Static Initializer Calls**，双击即可添加
+      - 可搭配 **Time Profiler** 使用（也是搜索后双击添加）
+
