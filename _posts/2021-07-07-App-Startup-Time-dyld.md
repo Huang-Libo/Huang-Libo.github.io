@@ -21,19 +21,18 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ## 前言
 
-[WWDC17 - Session413: <App Startup Time: Past, Present, and Future>](https://developer.apple.com/videos/play/wwdc2017/413/) 详细介绍了 `dyld` ，并给出了 APP 启动优化相关的建议。演讲者来自 *dyld Team* 。
+[WWDC17 - Session413: \<App Startup Time: Past, Present, and Future\>](https://developer.apple.com/videos/play/wwdc2017/413/) 详细介绍了 `dyld` ，并给出了 APP 启动优化相关的建议。演讲者来自 *dyld Team* 。
 
 ## 术语
 
 ### Darwin 里的 dyld 的全称
 
-一些博文在介绍 `dyld` 时写错了其英文全称，那个全称是 `FreeBSD` 上使用的，这里为了防止大家记成错的，就不提那个名称了。
-
-虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 的名称有自己的解释。
+> 一些博文在介绍 `dyld` 时写错了其英文全称，那个全称是 `FreeBSD` 上使用的，这里为了防止大家记成错的，就不提那个名称了。  
+> 虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 的名称有自己的解释。
 
 在终端使用 `man dyld` 查看文档，可看出其全称是 **the dynamic linker** ：
 
-![man_dyld.jpg](/images/WWDC/common/man_dyld.jpg)
+![man-dyld.jpg](/images/WWDC/Common/man-dyld.jpg)
 
 ### 启动时间（Startup Time）
 
@@ -51,7 +50,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ## 回顾 WWDC16：优化 APP 启动时间的建议
 
-![wwdc16_advice.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/wwdc16_advice.jpeg)
+![wwdc16-advice.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/wwdc16-advice.jpeg)
 
 ### 减少启动阶段的任务
 
@@ -64,10 +63,10 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 `Swift` 避免了 `C` , `C++` 和 `Objective-C` 的许多隐患。
 
 - `Swift` 没有 `initializer` 。
-- `Swift` 不允许存在*未对齐的（misaligned）*数据结构，未对齐的数据结构会在启动时消耗额外的时间。
 - `Swift` 改善了大小。
+- `Swift` 不允许存在*未对齐的（misaligned）*数据结构，未对齐的数据结构会在启动时消耗额外的时间。
 
 相关 Session ：
 
-- [WWDC16 - Session406: < Optimizing App Startup Time >](https://developer.apple.com/videos/play/wwdc2016/406/)
+- [WWDC16 - Session406: \<Optimizing App Startup Time\>](https://developer.apple.com/videos/play/wwdc2016/406/)
   - (链接已打不开，不知为何下掉了，但在 [wwdc.io](https://wwdc.io) 的 macOS 应用中可以查看)
