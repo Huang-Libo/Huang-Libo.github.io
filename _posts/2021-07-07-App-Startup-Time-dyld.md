@@ -15,7 +15,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [Darwin 里的 dyld 的全称](#darwin-里的-dyld-的全称)
   - [启动时间（Startup Time）](#启动时间startup-time)
   - [启动闭包（Launch Closure）](#启动闭包launch-closure)
-- [回顾 WWDC16：优化 APP 启动时间的建议](#回顾-wwdc16优化-app-启动时间的建议)
+- [回顾 WWDC16：优化 APP 启动的建议](#回顾-wwdc16优化-app-启动的建议)
   - [减少启动阶段的任务](#减少启动阶段的任务)
   - [多使用 Swift](#多使用-swift)
 - [Instruments: Static initializer tracing](#instruments-static-initializer-tracing)
@@ -49,7 +49,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - APP 内使用的各种**符号（symbols）的偏移量（offsets）**。
 - APP 的**代码签名（code signatures）**的位置。
 
-## 回顾 WWDC16：优化 APP 启动时间的建议
+## 回顾 WWDC16：优化 APP 启动的建议
 
 ![wwdc16-advice.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/wwdc16-advice.jpeg)
 
