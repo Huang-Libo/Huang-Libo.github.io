@@ -206,7 +206,7 @@ man dyld
 
 输出：  
 
-![man_dyld.jpg](/images/WWDC/common/man_dyld.jpg)
+![man-dyld.jpg](/images/WWDC/common/man-dyld.jpg)
 
 在 *WWDC17*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。  
 
