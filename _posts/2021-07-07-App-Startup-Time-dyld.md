@@ -21,6 +21,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [Instruments: Static initializer tracing](#instruments-static-initializer-tracing)
 - [dyld 简史](#dyld-简史)
   - [dyld 1.0 (1996–2004)](#dyld-10-19962004)
+  - [dyld 2.0 (2004–2007)](#dyld-20-20042007)
 
 ## 前言
 
@@ -99,4 +100,17 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 当时，由于和其他的 `Unix` 系统的实现不太一样，因此人们在 `macOS 10` 的早期版本上编写*第三方包装程序 (third-party wrappers)* ，以支持标准的 `Unix` 软件。
 
 在发布 *macOS Cheetah (10.0)* 之前，`dyld 1` 中引入了 *Prebinding* 技术，它虽然可以加快启动速度，但有安全隐患，因为 *Prebinding* 会修改应用二进制文件。详情请看 [字幕内 Prebinding 的简介](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2017/413-App-Startup-Time-Past-Present-and-Future/Transcript-Edited.md#prebinding)。
+
+### dyld 2.0 (2004–2007)
+
+`dyld 2.0` 是作为 `macOS Tiger (10.4)` 的一部分发布的。
+
+`dyld 2.0` 是对 `dyld` 的完全重写：
+
+- `dyld 2.0` 正确地支持了 `C++` *初始化器*的语义，因此可以得到高效的 `C++` 库支持。
+- `dyld 2.0` 有正确语义的、完全 *native* 实现的 `dlopen` 和 `dlsym` 。
+
+`dyld 2.0` 是为速度提升设计的，因此*健全性检测 (sanity checking)*也比较有限，存在一些安全性问题。但那个年代的（针对 Apple 系统的）恶意软件也较少。
+
+另外，由于 `dyld 2.0` 的速度得到了提升，因此减少了 `prebinding`，只有系统库会执行 `prebinding`，且只会在系统升级的时候执行。
 
