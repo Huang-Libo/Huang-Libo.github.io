@@ -35,6 +35,10 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
       - [3. 预构建 (Pre-builds) dyld 和 ObjC 使用的数据结构](#3-预构建-pre-builds-dyld-和-objc-使用的数据结构)
     - [共享缓存的生成方式](#共享缓存的生成方式)
   - [dyld 3 (2017)](#dyld-3-2017)
+- [dyld 3 诞生的背景](#dyld-3-诞生的背景)
+  - [为什么又重写动态链接器](#为什么又重写动态链接器)
+  - [无法使用 XCTest 测试 dyld 2.x 代码的原因](#无法使用-xctest-测试-dyld-2x-代码的原因)
+  - [dyld 3 的改进](#dyld-3-的改进)
 
 ## 前言
 
@@ -183,6 +187,12 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - 在 macOS 上，它是在本地构建的，当你看到 *optimizing system performance* 时，就是系统在更新共享缓存。
 - 在所有其他的 Apple 系统上，共享缓存是作为系统的一部分发布的。
 
+注：从 *macOS Big Sur (11.0)* 开始，共享缓存也是作为系统的一部分发布的。
+
+参考：
+
+- <https://iphonedev.wiki/index.php/Dyld_shared_cache>
+
 ### dyld 3 (2017)
 
 ![dyld-3](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3.jpeg)
@@ -193,4 +203,25 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - 2019 年，*iOS 13* 的系统自动 APP 和第三方 APP 都使用 *dyld 3* 。
 
 （本文写于 2021年7月，此时已是 *iOS 14* ）
+
+## dyld 3 诞生的背景
+
+### 为什么又重写动态链接器
+
+1. 性能：理论上，让 APP 运行起来的*最小的任务量*包含哪些任务？
+2. 安全：是否可以有更严格的安全检查并预先设计安全？
+3. 可测试性和可靠性：能否使 `dyld` 更容易测试？
+
+### 无法使用 XCTest 测试 dyld 2.x 代码的原因
+
+由于 `XCTest` 依赖于动态链接器的底层功能来将它插入进程，所以无法使用 `XCTest` 对 `dyld 2.x` 的代码做测试。因此 `dyld` 的工程师很难对 `dyld` 的*安全性*和*性能*做测试。
+
+### dyld 3 的改进
+
+- 把 `dyld` 复杂的操作从*进程 (process)* 中移出，以**守护进程 (daemon)** 的形式存在。因此，使用 `XCTest` 测试 `dyld` 的代码也变得更容易了。
+- 这使得进程中 `dyld` 的其余部分尽可能小，因此也减少了 APP 内的（恶意软件可利用的）“攻击平台”。
+- 另外，这也使 APP 的启动更快了，因为最快的代码就是你从未写过的代码，其次是从未执行的代码。
+
+> 原文：The fastest code is code you never write, followed closely by code you almost never execute.  
+> 这让小编想到了在海淀区 Hello World “公园”的建筑上的一句话：No code is faster than no code.
 
