@@ -34,6 +34,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
       - [2. 预链接动态库 (Pre-links dylibs)](#2-预链接动态库-pre-links-dylibs)
       - [3. 预构建 (Pre-builds) dyld 和 ObjC 使用的数据结构](#3-预构建-pre-builds-dyld-和-objc-使用的数据结构)
     - [共享缓存的生成方式](#共享缓存的生成方式)
+  - [dyld 3 (2017)](#dyld-3-2017)
 
 ## 前言
 
@@ -181,4 +182,15 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 - 在 macOS 上，它是在本地构建的，当你看到 *optimizing system performance* 时，就是系统在更新共享缓存。
 - 在所有其他的 Apple 系统上，共享缓存是作为系统的一部分发布的。
+
+### dyld 3 (2017)
+
+![dyld-3](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3.jpeg)
+
+*dyld 3* 是对*动态链接 (dynamic linking)* 的完全重新思考。
+
+- 2017 年，*iOS 11* 的系统自带 APP 开始使用 *dyld 3* ，第三方 APP 还是使用 *dyld 2.x* 。
+- 2019 年，*iOS 13* 的系统自动 APP 和第三方 APP 都使用 *dyld 3* 。
+
+（本文写于 2021年7月，此时已是 *iOS 14* ）
 
