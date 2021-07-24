@@ -28,6 +28,12 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
     - [1. 支持了更多的架构和系统](#1-支持了更多的架构和系统)
     - [2. 提高了安全性](#2-提高了安全性)
     - [3. 优化了性能](#3-优化了性能)
+  - [共享缓存 (Shared Cache)](#共享缓存-shared-cache)
+    - [优化方式](#优化方式)
+      - [1. 重新排列二进制文件 (Rearranges binaries) 以提高加载速度](#1-重新排列二进制文件-rearranges-binaries-以提高加载速度)
+      - [2. 预链接动态库 (Pre-links dylibs)](#2-预链接动态库-pre-links-dylibs)
+      - [3. 预构建 (Pre-builds) dyld 和 ObjC 使用的数据结构](#3-预构建-pre-builds-dyld-和-objc-使用的数据结构)
+    - [共享缓存的生成方式](#共享缓存的生成方式)
 
 ## 前言
 
@@ -102,6 +108,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### dyld 1.0 (1996–2004)
 
+![dyld-1.0.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-1.0.jpeg)
+
 早在 1996 年，`dyld 1` 就作为 `NeXTStep 3.3` 的一部分发布了。在这之前，`NeXTStep` 使用静态库。
 
 这个时间早于 **POSIX** `dlopen()` 标准颁布的时间，大多数系统也还未使用大型 `C++` 动态库。
@@ -111,6 +119,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 在发布 *macOS Cheetah (10.0)* 之前，`dyld 1` 中引入了 *Prebinding* 技术，它虽然可以加快启动速度，但有安全隐患，因为 *Prebinding* 会修改应用二进制文件。详情请看 [字幕中 Prebinding 的简介](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2017/413-App-Startup-Time-Past-Present-and-Future/Transcript-Edited.md#prebinding)。
 
 ### dyld 2.0 (2004–2007)
+
+![dyld-2.0.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2.0.jpeg)
 
 `dyld 2.0` 是作为 `macOS Tiger (10.4)` 的一部分发布的，是对 `dyld` 的完全重写。
 
@@ -125,6 +135,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 `dyld 2.0` 是为速度提升设计的，因此*健全性检测 (sanity checking)*比较有限，存在一些安全性问题。但那个年代的（针对 Apple 系统的）恶意软件比较少。
 
 ### dyld 2.x (2007–2017)
+
+![dyld-2.x.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2.x.jpeg)
 
 在这个时期，`dyld 2.x` 做了多项显著的改进。
 
@@ -141,5 +153,32 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 #### 3. 优化了性能
 
-完全用**共享缓存 (shared cache)** 替代了 prebinding 。
+完全用**共享缓存**替代了 prebinding 。
+
+### 共享缓存 (Shared Cache)
+
+![dyld-Shared-Cache.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-Shared-Cache.jpeg)
+
+**共享缓存是包含所有系统 dylib 的单个文件。** 它是在 `iOS 3.1` 和 `macOS Snow Leopard (10.6)` 引入的，并**完全取代了 prebinding** 。
+
+由于所有的系统 `dylib` 被合并成了单个文件，因此系统可以对其做一些优化。
+
+#### 优化方式
+
+##### 1. 重新排列二进制文件 (Rearranges binaries) 以提高加载速度
+
+系统可以**重新排列**这些二进制文件的所有的*文本段 (text segments)* 和所有的*数据段 (data segments)* ，重写他们的整个*符号表 (symbol tables)* ，以减少大小。这样，系统需要在每个进程*挂载 (mount)* 的*区域 (regions)* 更少。
+
+##### 2. 预链接动态库 (Pre-links dylibs)
+
+*Prelinker* 可以**打包二进制段 (pack binary segments)** 来节省内存。开发者不需要做任何改动，就能节省很多内存。在 iOS 系统上，可以在运行时节省 500MB ~ 1GB 的内存。
+
+##### 3. 预构建 (Pre-builds) dyld 和 ObjC 使用的数据结构
+
+它还*预构建 (Pre-builds)* 了 *dyld* 和 *ObjC* 在运行时使用的数据结构，这样我们就不必在启动时做了。这又一次节省了更多的内存和大量的时间。
+
+#### 共享缓存的生成方式
+
+- 在 macOS 上，它是在本地构建的，当你看到 *optimizing system performance* 时，就是系统在更新共享缓存。
+- 在所有其他的 Apple 系统上，共享缓存是作为系统的一部分发布的。
 
