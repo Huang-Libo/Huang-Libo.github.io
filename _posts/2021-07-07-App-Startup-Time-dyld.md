@@ -39,6 +39,15 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [为什么又重写动态链接器](#为什么又重写动态链接器)
   - [无法使用 XCTest 测试 dyld 2.x 代码的原因](#无法使用-xctest-测试-dyld-2x-代码的原因)
   - [dyld 3 的改进](#dyld-3-的改进)
+- [dyld 2 启动 APP 的流程](#dyld-2-启动-app-的流程)
+  - [1. Parse mach-o headers & Find dependencies](#1-parse-mach-o-headers--find-dependencies)
+  - [2. Map mach-o files](#2-map-mach-o-files)
+  - [3. Perform symbol lookups](#3-perform-symbol-lookups)
+  - [4. Bind and rebase](#4-bind-and-rebase)
+  - [5. Run initializers](#5-run-initializers)
+- [如何将 dyld 从进程移出](#如何将-dyld-从进程移出)
+  - [安全敏感组件：**parsing mach-o headers and finding dependencies**](#安全敏感组件parsing-mach-o-headers-and-finding-dependencies)
+  - [可缓存的部分：**symbol lookups**](#可缓存的部分symbol-lookups)
 
 ## 前言
 
@@ -218,10 +227,48 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### dyld 3 的改进
 
-- 把 `dyld` 复杂的操作从*进程 (process)* 中移出，以**守护进程 (daemon)** 的形式存在。因此，使用 `XCTest` 测试 `dyld` 的代码也变得更容易了。
-- 这使得进程中 `dyld` 的其余部分尽可能小，因此也减少了 APP 内的（恶意软件可利用的）“攻击平台”。
+- 把 `dyld` 复杂的操作从*进程 (process)* 中移出，以**守护进程 (daemon)** 的形式存在。因此，使用 `XCTest` 测试 `dyld` 的代码也变得很容易了。
+- 这使得进程中 `dyld` 的其余部分尽可能小，因此也减少了 APP 内的（可被恶意软件利用的）“攻击平台”。
 - 另外，这也使 APP 的启动更快了，因为最快的代码就是你从未写过的代码，其次是从未执行的代码。
 
 > 原文：The fastest code is code you never write, followed closely by code you almost never execute.  
 > 这让小编想到了在海淀区 Hello World “公园”的建筑上的一句话：No code is faster than no code.
+
+## dyld 2 启动 APP 的流程
+
+![dyld-2-launch.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-launch.jpeg){: .normal width="300"}
+
+### 1. Parse mach-o headers & Find dependencies
+
+`dyld` 会解析 `Mach-O Headers` ，并寻找 APP 需要的动态库，然后这些动态库可能依赖了其他动态库，`dyld` 就递归地做这个任务，直到 `dyld` 获得 APP 的完整的动态库依赖图 (a complete graph of all your dylibs) 。
+
+平均而言，一个 iOS 应用需要加载 300 ~ 600 个系统动态库，数量较多，因此有相当大的工作量。
+
+### 2. Map mach-o files
+
+`dyld` *映射 (map)* 所有的 `Mach-O` 文件到 APP 的*地址空间 (address space)* 。
+
+### 3. Perform symbol lookups
+
+接下来执行*符号查找 (symbol lookups)* 。比如 APP 内使用了 `printf` ，`dyld` 就会去系统动态库中查找它的地址，找到后就把这个地址拷贝到 APP 内的一个*函数指针 (function pointer)* 中。
+
+### 4. Bind and rebase
+
+因为 APP 是在一个随机地址（用了 `ASLR` 技术），因此 APP 内的**所有的指针**都必须把这个基地地址加到它们上面。
+
+### 5. Run initializers
+
+最后，`dyld` 调用 APP 内所有的 `initializer` ，之后就能调用 APP 的 `main()` 函数了。
+
+## 如何将 dyld 从进程移出
+
+### 安全敏感组件：**parsing mach-o headers and finding dependencies**
+
+如果 `Mach-O Headers` 被篡改了，则可被用来做特定类型的攻击。我们的 APP 中可能使用了 `@rpath` ，也就是*搜索路径 (search path)* ，通过篡改它们或者在正确的位置插入库，就能侵入 APP 。
+
+因此，dyld 3 将这部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 中。
+
+### 可缓存的部分：**symbol lookups**
+
+因为在给定的库中，除非执行了软件更新或更改磁盘上的库，否则该库中的*符号 (symbols)* 将始终处于相同的*偏移量 (offset)* 。
 
