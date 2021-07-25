@@ -262,6 +262,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ## 如何将 dyld 从进程移出
 
+![dyld-2-optimization-method.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-optimization-method.jpeg)
+
 ### 安全敏感组件：**parsing mach-o headers and finding dependencies**
 
 如果 `Mach-O Headers` 被篡改了，则可被用来做特定类型的攻击。我们的 APP 中可能使用了 `@rpath` ，也就是*搜索路径 (search path)* ，通过篡改它们或者在正确的位置插入库，就能侵入 APP 。
@@ -270,5 +272,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 可缓存的部分：**symbol lookups**
 
-因为在给定的库中，除非执行了软件更新或更改磁盘上的库，否则该库中的*符号 (symbols)* 将始终处于相同的*偏移量 (offset)* 。
+除非*执行了软件更新*或*更改了磁盘上的库*，否则每次启动时：
+
+1. APP 依赖的库不会变。
+2. 库中的*符号 (symbols)* 始终处于相同的*偏移量 (offset)* 。
 
