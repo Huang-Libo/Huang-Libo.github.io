@@ -48,6 +48,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [如何将 dyld 从进程移出](#如何将-dyld-从进程移出)
   - [安全敏感组件](#安全敏感组件)
   - [可缓存的部分](#可缓存的部分)
+- [dyld 3 架构简介](#dyld-3-架构简介)
+  - [组成](#组成)
 
 ## 前言
 
@@ -277,6 +279,9 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 可缓存的部分
 
+![dyld-3-compare.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-compare.jpeg)
+_dyld 2 与 dyld 3 执行流程的对比_
+
 可缓存的阶段：
 
 - **Parsing mach-o headers**
@@ -288,8 +293,22 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 1. APP 依赖的库不会变。
 2. 库中的*符号 (symbols)* 始终处于相同的*偏移量 (offset)* 。
 
-因此，在 `dyld 3` 中，将可缓存的阶段挪到了最前面，并将得到的结果以一个*闭包 (closure)* 的形式写入磁盘中，在之后的流程中会用到这个闭包：
+因此，在 `dyld 3` 中，将可缓存的阶段挪到了最前面，并将得到的结果以一个*闭包 (closure)* 的形式写入磁盘中，在之后的流程中会用到这个闭包。
 
-![dyld-3-compare.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-compare.jpeg)
-_dyld 2 与 dyld 3 执行流程的对比_
+## dyld 3 架构简介
+
+### 组成
+
+![dyld-architecture-overview.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-overview.jpeg)
+
+`dyld 3` 有 3 个组件：
+
+1. 一个*进程外 (out-of-process)* 的 `mach-o` *解析器/编译器 (parser/complier)*
+2. 一个运行*启动闭包*的*进程内 (in-process)* 引擎
+3. 一个*启动闭包*缓存服务
+
+大多数启动使用缓存，而不必调用*进程外*的 `mach-o` *解析器或编译器*。
+
+*启动闭包*比 `mach-o` 要简单得多，它们是 **memory map** 文件，因此不需要使用复杂的方式来解析。并且验证*启动闭包*也很简单。*启动闭包*就是为速度而生的。
+
 
