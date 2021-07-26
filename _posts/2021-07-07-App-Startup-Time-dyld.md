@@ -268,7 +268,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 有安全隐患的阶段：
 
-- **Parsing mach-o headers and finding dependencies**
+- **Parsing mach-o headers**
+- **Find dependencies**
 
 如果 `Mach-O Headers` 被篡改了，则可被用来做特定类型的攻击。我们的 APP 中可能使用了 `@rpath` ，也就是*搜索路径 (search path)* ，通过篡改它们或者在正确的位置插入库，就能侵入 APP 。
 
@@ -276,13 +277,19 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 可缓存的部分
 
-以下两个阶段可缓存：
+可缓存的阶段：
 
-- **Parsing mach-o headers and finding dependencies**
+- **Parsing mach-o headers**
+- **Find dependencies**
 - **Perform symbol lookups**
 
 除非*执行了软件更新*或*更改了磁盘上的库*，否则每次启动时：
 
 1. APP 依赖的库不会变。
 2. 库中的*符号 (symbols)* 始终处于相同的*偏移量 (offset)* 。
+
+因此，在 `dyld 3` 中，将可缓存的阶段挪到了最前面，并将得到的结果以一个*闭包 (closure)* 的形式写入磁盘中，在之后的流程中会用到这个闭包：
+
+![dyld-3-compare.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-compare.jpeg)
+_dyld 2 与 dyld 3 执行流程的对比_
 
