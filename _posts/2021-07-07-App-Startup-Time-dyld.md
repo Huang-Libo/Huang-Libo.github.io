@@ -22,7 +22,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [dyld 简史](#dyld-简史)
   - [dyld 1.0 (1996–2004)](#dyld-10-19962004)
   - [dyld 2.0 (2004–2007)](#dyld-20-20042007)
-    - [1. 改进：速度和语义](#1-改进速度和语义)
+    - [1. dyld 2.0 的改进：速度和语义](#1-dyld-20-的改进速度和语义)
     - [2. 不足：健全性检验比较有限](#2-不足健全性检验比较有限)
   - [dyld 2.x (2007–2017)](#dyld-2x-20072017)
     - [1. 支持了更多的架构和系统](#1-支持了更多的架构和系统)
@@ -39,15 +39,15 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [为什么又重写动态链接器](#为什么又重写动态链接器)
   - [无法使用 XCTest 测试 dyld 2.x 代码的原因](#无法使用-xctest-测试-dyld-2x-代码的原因)
   - [dyld 3 的改进](#dyld-3-的改进)
-- [dyld 2 启动 APP 的流程](#dyld-2-启动-app-的流程)
+- [dyld 2 的执行流程](#dyld-2-的执行流程)
   - [1. Parse mach-o headers & Find dependencies](#1-parse-mach-o-headers--find-dependencies)
   - [2. Map mach-o files](#2-map-mach-o-files)
   - [3. Perform symbol lookups](#3-perform-symbol-lookups)
   - [4. Bind and rebase](#4-bind-and-rebase)
   - [5. Run initializers](#5-run-initializers)
 - [如何将 dyld 从进程移出](#如何将-dyld-从进程移出)
-  - [安全敏感组件：**parsing mach-o headers and finding dependencies**](#安全敏感组件parsing-mach-o-headers-and-finding-dependencies)
-  - [可缓存的部分：**symbol lookups**](#可缓存的部分symbol-lookups)
+  - [安全敏感组件](#安全敏感组件)
+  - [可缓存的部分](#可缓存的部分)
 
 ## 前言
 
@@ -138,11 +138,11 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 `dyld 2.0` 是作为 `macOS Tiger (10.4)` 的一部分发布的，是对 `dyld` 的完全重写。
 
-#### 1. 改进：速度和语义
+#### 1. dyld 2.0 的改进：速度和语义
 
-- `dyld 2.0` 正确地支持了 `C++` *初始化器*的语义，因此可以得到高效的 `C++` 库支持。
-- `dyld 2.0` 有语义正确的、完全 *native* 的 `dlopen` 和 `dlsym` 。
-- 由于 `dyld 2.0` 的速度得到了提升，因此减少了 `prebinding`，只有系统库会执行 `prebinding`，且只会在系统升级的时候执行。
+- 正确地支持了 `C++` *初始化器*的语义，因此可以得到高效的 `C++` 库支持。
+- 有语义正确的、完全 *native* 的 `dlopen` 和 `dlsym` 。
+- 由于速度得到了提升，因此减少了 `prebinding`，只有系统库会执行 `prebinding`，且只会在系统升级的时候执行。
 
 #### 2. 不足：健全性检验比较有限
 
@@ -163,7 +163,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 - *Codesigning* ：代码签名。
 - *ASLR (Address Space Layout Randomization)* ： 每次加载库时，它可能在不同的地址。
-- *Bounds checking* ：检查 `Mach-O Header` 的边界，所以其他人无法用*篡改 (malformed)* 的二进制文件做某些类型的*连接 (attach)* 。
+- *Bounds checking* ：检查 `Mach-O Header` 的边界，所以其他人无法用*篡改 (malformed)* 的二进制文件来做某些类型的*连接 (attach)* 。
 
 #### 3. 优化了性能
 
@@ -234,19 +234,19 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 > 原文：The fastest code is code you never write, followed closely by code you almost never execute.  
 > 这让小编想到了在海淀区 Hello World “公园”的建筑上的一句话：No code is faster than no code.
 
-## dyld 2 启动 APP 的流程
+## dyld 2 的执行流程
 
 ![dyld-2-launch.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-launch.jpeg){: .normal width="300"}
 
 ### 1. Parse mach-o headers & Find dependencies
 
-`dyld` 会解析 `Mach-O Headers` ，并寻找 APP 需要的动态库，然后这些动态库可能依赖了其他动态库，`dyld` 就递归地做这个任务，直到 `dyld` 获得 APP 的完整的动态库依赖图 (a complete graph of all your dylibs) 。
+`dyld` 会解析 `Mach-O Headers` ，并寻找 APP 需要的动态库，然后这些动态库可能依赖了其他动态库，`dyld` 就递归地做这个任务，直到获得 APP 的完整的动态库依赖图 (a complete graph of all your dylibs) 。
 
 平均而言，一个 iOS 应用需要加载 300 ~ 600 个系统动态库，数量较多，因此有相当大的工作量。
 
 ### 2. Map mach-o files
 
-`dyld` *映射 (map)* 所有的 `Mach-O` 文件到 APP 的*地址空间 (address space)* 。
+这个阶段 `dyld` *映射 (map)* 所有的 `Mach-O` 文件到 APP 的*地址空间 (address space)* 。
 
 ### 3. Perform symbol lookups
 
@@ -254,23 +254,32 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 4. Bind and rebase
 
-因为 APP 是在一个随机地址（用了 `ASLR` 技术），因此 APP 内的**所有的指针**都必须把这个基地地址加到它们上面。
+因为 APP 是在一个随机地址（用了 `ASLR` 技术），因此 APP 内的**所有的指针**都必须把这个基地地址值加上。
 
 ### 5. Run initializers
 
-最后，`dyld` 调用 APP 内所有的 `initializer` ，之后就能调用 APP 的 `main()` 函数了。
+最后，`dyld` 调用 APP 内所有的 `initializer` ，完成后就能调用 APP 的 `main()` 函数了。
 
 ## 如何将 dyld 从进程移出
 
 ![dyld-2-optimization-method.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-optimization-method.jpeg)
 
-### 安全敏感组件：**parsing mach-o headers and finding dependencies**
+### 安全敏感组件
+
+有安全隐患的阶段：
+
+- **Parsing mach-o headers and finding dependencies**
 
 如果 `Mach-O Headers` 被篡改了，则可被用来做特定类型的攻击。我们的 APP 中可能使用了 `@rpath` ，也就是*搜索路径 (search path)* ，通过篡改它们或者在正确的位置插入库，就能侵入 APP 。
 
-因此，dyld 3 将这部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 中。
+因此，`dyld 3` 将这部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 中。
 
-### 可缓存的部分：**symbol lookups**
+### 可缓存的部分
+
+以下两个阶段可缓存：
+
+- **Parsing mach-o headers and finding dependencies**
+- **Perform symbol lookups**
 
 除非*执行了软件更新*或*更改了磁盘上的库*，否则每次启动时：
 
