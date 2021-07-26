@@ -1,7 +1,7 @@
 ---
-title: "【2019】优化 APP 启动"
+title: "【WWDC19】优化 APP 启动"
 categories: [攻城狮, WWDC]
-tags: [WWDC 2019, iOS, APP 性能优化, APP 启动优化]
+tags: [WWDC19, iOS, APP 性能优化, APP 启动优化]
 ---
 
 <p>
@@ -198,7 +198,7 @@ _把🚀送上火星需要162天_
 
 *System Interface* 的前半部分是 **dyld（the dynamic linker）**阶段，它的作用是加载 *shared libraries* 和 *frameworks* 。
 
-查看 dyld 的文档：  
+查看 `dyld` 的文档：  
 
 ```bash
 man dyld
@@ -208,22 +208,22 @@ man dyld
 
 ![man-dyld.jpg](/images/WWDC/common/man-dyld.jpg)
 
-在 *WWDC17*，*Apple* 推出了 *dyld3*，为系统添加了令人兴奋的优化。  
+在 *WWDC17*，*Apple* 推出了 *dyld 3*，为系统添加了令人兴奋的优化。  
 
-- 2017 年，*iOS 11* 的系统自带 APP 开始使用 *dyld3* ，第三方 APP 还是使用 *dyld2.x* 。
-- 2019 年，*iOS 13* 开始全面使用 *dyld3* 。  
+- 2017 年，*iOS 11* 的系统自带 APP 开始使用 *dyld 3* ，第三方 APP 还是使用 *dyld 2.x* 。
+- 2019 年，*iOS 13* 的系统自动 APP 和第三方 APP 都使用 *dyld 3* 。
 
-在使用 *dyld3* 后，系统会*缓存运行时依赖项（caching runtime dependencies）*，这给*热启动*带来显著的速度改进。  
+在使用 *dyld 3* 后，系统会*缓存运行时依赖项 (caching runtime dependencies)* ，这给*热启动*带来显著的速度改进。  
 
 相关 *Session* ：
 
 - [WWDC17 / 413 - App Startup Time: Past, Present, and Future](https://developer.apple.com/videos/play/wwdc2017/413/)
 
-在 *dyld3* 阶段的几个建议：  
+在 *dyld 3* 阶段的几个建议：  
   
 - ✅ 避免链接未用到的 *frameworks* 。
-- ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了 *dyld3 缓存运行时依赖项*带来的好处。
-- ✅ （根据上一条）最后，这意味着要*硬链接（Hard link）*所有的依赖，它比以前更快。
+- ✅ 避免在启动时加载动态库，比如 `dlopen` 和 `NSBundle load`。因为这样就失去了 *dyld 3 缓存运行时依赖项*带来的好处。
+- ✅ （根据上一条）最后，这意味着要*硬链接 (Hard link)* 所有的依赖，它比以前更快。
 
 ##### 1.2 libSystemInit
 
@@ -343,7 +343,7 @@ layoutSubviews
 
 ### 系统侧的优化
 
-*iOS 13* 做了一系列优化，其中一些优化可显著地加快启动速度，如：引入 dyld3 、缓存 APP 的运行时依赖项、Auto Layout 的优化、Scheduler 的优化、Runtime 的优化，等等。
+*iOS 13* 做了一系列优化，其中一些优化可显著地加快启动速度，如：引入 dyld 3 、缓存 APP 的运行时依赖项、Auto Layout 的优化、Scheduler 的优化、Runtime 的优化，等等。
 
 开发者只需要稍作调整，甚至都不需要做任何事情，启动就会变得更快。
 
