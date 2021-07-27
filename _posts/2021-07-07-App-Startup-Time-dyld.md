@@ -49,7 +49,10 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [1. 安全敏感组件](#1-安全敏感组件)
   - [2. 可缓存的部分](#2-可缓存的部分)
 - [dyld 3 架构简介](#dyld-3-架构简介)
-  - [组成](#组成)
+  - [概览：dyld 3 由三部分组成](#概览dyld-3-由三部分组成)
+  - [1. 进程外的 mach-o 解析器/编译器](#1-进程外的-mach-o-解析器编译器)
+  - [2. 运行启动闭包的进程内引擎](#2-运行启动闭包的进程内引擎)
+  - [3. 启动闭包缓存服务](#3-启动闭包缓存服务)
 
 ## 前言
 
@@ -301,11 +304,11 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 ## dyld 3 架构简介
 
-### 组成
+### 概览：dyld 3 由三部分组成
 
 ![dyld-architecture-overview.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-overview.jpeg)
 
-`dyld 3` 有 3 个组件：
+`dyld 3` 有三个组件：
 
 1. 一个*进程外 (out-of-process)* 的 `mach-o` *解析器/编译器 (parser/complier)*
 2. 一个运行*启动闭包*的*进程内 (in-process)* 引擎
@@ -315,4 +318,51 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 *启动闭包*比 `mach-o` 要简单得多，它们是 **memory map** 文件，因此不需要使用复杂的方式来解析。并且验证*启动闭包*也很简单。*启动闭包*就是为速度而生的。
 
+接下来简要介绍这三个组件。
+
+### 1. 进程外的 mach-o 解析器/编译器
+
+![dyld-architecture-1.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-1.jpeg)
+
+首先，`dyld 3` 包含一个进程外的 `mach-o` 解析器/编译器。
+
+它的主要功能是：
+
+- 解析 (resolve) 所有的启动需要的*搜索路径 (search path)* 、*@rpath* 、*环境变量 (environment variable)* ；
+- 解析 (parse) 所有的 `mach-o` 二进制文件；
+- 执行*符号查找 (symbol lookup)* ；
+- 最后，创建一个带有结果的*闭包 (closure)* 。
+
+这部分功能在 `dyld 3` 中是一个普通的*守护进程*，所以 `dyld` 团队可以使用普通的测试基础设施。
+
+### 2. 运行启动闭包的进程内引擎
+
+![dyld-architecture-2.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-2.jpeg)
+
+然后，`dyld 3` 包含一个小型的进程内引擎，也就是说这部分功能会加载到 APP 的进程中，也是最常被使用到的模块。
+
+它的主要功能是：
+
+- 验证启动闭包是否正确；
+- map in 所有的 dylib ；
+- *Fix-ups*: *Bind* 和 *Rebase* ；
+- 运行所有的 initializer ；
+- 跳转到 APP 的 `main()` 函数。
+
+值得注意的是，在这个过程中再也不需要解析 `mach-o header` 或执行*符号查找*，这使 APP 的启动更快了。
+
+### 3. 启动闭包缓存服务
+
+![dyld-architecture-3.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-3.jpeg)
+
+最后，`dyld 3` 包含一个*启动闭包缓存服务 (launch closure caching service)* 。
+
+在 `iOS`、`tvOS`、`watchOS` 中，即使 APP 没有运行过，`启动闭包`就已经被预构建了：
+
+- **系统 APP** 的*启动闭包*內建在*共享缓存*中。
+- **第三方 APP** 在安装时或系统升级时构建启动闭包（因为系统升级时，系统动态库可能有变动）。
+
+在 `macOS` 上，第一次启动 APP 时有所不同，但之后再启动就能使用缓存的启动闭包了：
+
+- because you can **side load applications**, the **in-process engine can RPC out to the daemon if necessary on first launch**（???）, and then after that it will be able to use a cached closure just like everything else.
 
