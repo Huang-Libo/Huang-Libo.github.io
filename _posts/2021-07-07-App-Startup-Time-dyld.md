@@ -45,9 +45,9 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [3. Perform symbol lookups](#3-perform-symbol-lookups)
   - [4. Bind and rebase](#4-bind-and-rebase)
   - [5. Run initializers](#5-run-initializers)
-- [如何将 dyld 从进程移出](#如何将-dyld-从进程移出)
-  - [安全敏感组件](#安全敏感组件)
-  - [可缓存的部分](#可缓存的部分)
+- [dyld 2 向 dyld 3 的转变](#dyld-2-向-dyld-3-的转变)
+  - [1. 安全敏感组件](#1-安全敏感组件)
+  - [2. 可缓存的部分](#2-可缓存的部分)
 - [dyld 3 架构简介](#dyld-3-架构简介)
   - [组成](#组成)
 
@@ -61,7 +61,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 > 一些博文在介绍 `dyld` 时，把它的英文全称写错了，那个全称是 `FreeBSD` 上使用的。这里为了防止大家记成错的，就不提那个名称了。  
 >  
-> 虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 的名称有自己的解释。
+> 虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 有自己的解释。
 
 在终端使用 `man dyld` 查看文档，可看出其全称是 **the dynamic linker** ：
 
@@ -89,7 +89,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 - 减少*嵌入的 (Embed)* `dylib` 的数量。
 - 减少声明的 `classes/methods` 的数量。
-- 少使用 `initializers` 。
+- 少用 `initializers` 。
 
 ### 多使用 Swift
 
@@ -106,9 +106,9 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ## Instruments: Static initializer tracing
 
-静态初始化器的代码在 `main()` 之前调用，而开发者对 `main()` 之前发生的事缺乏可视的观测方式。
+*静态初始化器 (Static Initializer)*的代码在 `main()` 之前调用，而开发者对 `main()` 之前发生的事缺乏可视的观测方式。
 
-*iOS 11* 和 *macOS High Sierra* 的内核与 `dyld` 中新增了相关基础设施 (infrastructure) ，因此可使用 Instruments 中新增的 **Static Initializer Calls** 为每个**静态初始化器 (Static Initializer)** 提供精确的计时：
+*iOS 11* 和 *macOS High Sierra* 的内核与 `dyld` 中新增了相关基础设施 (infrastructure) ，因此可使用 Instruments 中新增的 **Static Initializer Calls** 为每个*静态初始化器* 提供精确的计时：
 
 ![Instruments-Static-Initializer-Tracing.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/Instruments-Static-Initializer-Tracing.jpeg){: .normal width="350"}
 
@@ -132,7 +132,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 当时，由于和其他的 `Unix` 系统的实现不太一样，因此人们在 `macOS 10` 的早期版本上编写*第三方包装程序 (third-party wrappers)* ，以支持标准的 `Unix` 软件。
 
-在发布 *macOS Cheetah (10.0)* 之前，`dyld 1` 中引入了 *Prebinding* 技术，它虽然可以加快启动速度，但有安全隐患，因为 *Prebinding* 会修改应用二进制文件。详情请看 [字幕中 Prebinding 的简介](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2017/413-App-Startup-Time-Past-Present-and-Future/Transcript-Edited.md#prebinding)。
+发布 *macOS Cheetah (10.0)* 时，在 `dyld 1` 中引入了 *Prebinding* 技术，它虽然可以加快启动速度，但有安全隐患，因为 *Prebinding* 会修改应用二进制文件。详情请看 [字幕中 Prebinding 的简介](https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2017/413-App-Startup-Time-Past-Present-and-Future/Transcript-Edited.md#prebinding)。
 
 ### dyld 2.0 (2004–2007)
 
@@ -163,13 +163,13 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 #### 2. 提高了安全性
 
-- *Codesigning* ：代码签名。
-- *ASLR (Address Space Layout Randomization)* ： 每次加载库时，它可能在不同的地址。
+- *Codesigning* ：*代码签名*。
+- *ASLR (Address Space Layout Randomization)* ： *地址空间布局随机化*，每次加载库时，它可能在不同的地址。
 - *Bounds checking* ：检查 `Mach-O Header` 的边界，所以其他人无法用*篡改 (malformed)* 的二进制文件来做某些类型的*连接 (attach)* 。
 
 #### 3. 优化了性能
 
-完全用**共享缓存**替代了 prebinding 。
+完全用**共享缓存**替代了 prebinding 。下面将简要介绍*共享缓存*。
 
 ### 共享缓存 (Shared Cache)
 
@@ -187,11 +187,11 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ##### 2. 预链接动态库 (Pre-links dylibs)
 
-*Prelinker* 可以**打包二进制段 (pack binary segments)** 来节省内存。开发者不需要做任何改动，就能节省很多内存。在 iOS 系统上，可以在运行时节省 500MB ~ 1GB 的内存。
+*Prelinker* 可以**打包二进制段 (pack binary segments)** 来节省内存。开发者不需要做任何改动，就能节省很多内存。在 iOS 系统上，可以在运行时节省 **500MB ~ 1GB** 的内存。
 
 ##### 3. 预构建 (Pre-builds) dyld 和 ObjC 使用的数据结构
 
-它还*预构建 (Pre-builds)* 了 *dyld* 和 *ObjC* 在运行时使用的数据结构，这样我们就不必在启动时做了。这又一次节省了更多的内存和大量的时间。
+*预构建 (Pre-builds)* *dyld* 和 *ObjC* 在运行时使用的数据结构，这样我们就不必在启动时做了。这也节省了很多内存和时间。
 
 #### 共享缓存的生成方式
 
@@ -213,7 +213,9 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - 2017 年，*iOS 11* 的系统自带 APP 开始使用 *dyld 3* ，第三方 APP 还是使用 *dyld 2.x* 。
 - 2019 年，*iOS 13* 的系统自动 APP 和第三方 APP 都使用 *dyld 3* 。
 
-（本文写于 2021年7月，此时已是 *iOS 14* ）
+（注：本文写于 2021年7月，此时已是 *iOS 14* ）
+
+下面将详细介绍 `dyld 3` 。
 
 ## dyld 3 诞生的背景
 
@@ -256,17 +258,19 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 4. Bind and rebase
 
-因为 APP 是在一个随机地址（用了 `ASLR` 技术），因此 APP 内的**所有的指针**都必须把这个基地地址值加上。
+因为 APP 是在一个随机地址（用了 `ASLR` 技术），因此 APP 内的**所有的指针**都必须把这个基地址值加上。
 
 ### 5. Run initializers
 
 最后，`dyld` 调用 APP 内所有的 `initializer` ，完成后就能调用 APP 的 `main()` 函数了。
 
-## 如何将 dyld 从进程移出
+## dyld 2 向 dyld 3 的转变
 
 ![dyld-2-optimization-method.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-optimization-method.jpeg)
 
-### 安全敏感组件
+`dyld 3` 与 `dyld 2` 的主要区别是将大部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 。
+
+### 1. 安全敏感组件
 
 有安全隐患的阶段：
 
@@ -275,9 +279,9 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 如果 `Mach-O Headers` 被篡改了，则可被用来做特定类型的攻击。我们的 APP 中可能使用了 `@rpath` ，也就是*搜索路径 (search path)* ，通过篡改它们或者在正确的位置插入库，就能侵入 APP 。
 
-因此，`dyld 3` 将这部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 中。
+因此，`dyld 3` 将这部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 。
 
-### 可缓存的部分
+### 2. 可缓存的部分
 
 ![dyld-3-compare.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-compare.jpeg)
 _dyld 2 与 dyld 3 执行流程的对比_
@@ -293,7 +297,7 @@ _dyld 2 与 dyld 3 执行流程的对比_
 1. APP 依赖的库不会变。
 2. 库中的*符号 (symbols)* 始终处于相同的*偏移量 (offset)* 。
 
-因此，在 `dyld 3` 中，将可缓存的阶段挪到了最前面，并将得到的结果以一个*闭包 (closure)* 的形式写入磁盘中，在之后的流程中会用到这个闭包。
+因此，在 `dyld 3` 中，将可缓存的阶段挪到了最前面，并将执行结果以一个*闭包 (closure)* 的形式写入磁盘中，在之后的流程中会用到这个闭包。
 
 ## dyld 3 架构简介
 
