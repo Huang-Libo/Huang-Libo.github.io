@@ -56,6 +56,11 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 - [为 dyld 3 做准备](#为-dyld-3-做准备)
   - [潜在的问题](#潜在的问题)
   - [__DATA 中未对齐的指针](#__data-中未对齐的指针)
+  - [急切的符号解析](#急切的符号解析)
+    - [1. dyld 2 执行惰性的符号解析 (Lazy symbol resolution)](#1-dyld-2-执行惰性的符号解析-lazy-symbol-resolution)
+    - [2. dyld 3 执行急切的符号解析 (Eager symbol resolution)](#2-dyld-3-执行急切的符号解析-eager-symbol-resolution)
+    - [3. dyld 3 对符号缺失的兼容](#3-dyld-3-对符号缺失的兼容)
+    - [4. Linker Flag: _bind_at_load](#4-linker-flag-_bind_at_load)
 
 ## 前言
 
@@ -402,4 +407,42 @@ _dyld 2 与 dyld 3 执行流程的对比_
 ![dyld-3-unaligned-pointer-2.jpge](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-unaligned-pointer-2.jpeg)
 
 ![dyld-3-unaligned-pointer-3.jpge](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-unaligned-pointer-3.jpeg)
+
+### 急切的符号解析
+
+![dyld-3-eager-symbol-resolution-1.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-eager-symbol-resolution-1.jpeg){: .normal width="600"}
+
+#### 1. dyld 2 执行惰性的符号解析 (Lazy symbol resolution)
+
+在 `dyld 2` 中，如果在启动时就查找所有的符号，代价太高。因此 `dyld 2` 执行的是*惰性的符号解析*。
+
+- 每个符号在第一次被调用时执行符号查找 。
+- 如果符号缺失，将在首次调用时导致 crash 。
+
+比如，APP 内第一次调用 `printf` 函数时，最初它的函数指针不是指向 `printf` 的实现，而是指向 `dyld` 中的一个函数，这个 `dyld` 的函数会返回指向 `printf` 实现的指针。第二次调用 `printf` 时，就直接调用它的实现了。
+
+#### 2. dyld 3 执行急切的符号解析 (Eager symbol resolution)
+
+在 `dyld 3` 中，由于符号查找的结果缓存在启动闭包中，所以符号查找非常快，可以在启动时就检查所有的符号。也就是说 `dyld 3` 执行*急切的符号解析*。
+
+#### 3. dyld 3 对符号缺失的兼容
+
+由上述内容可知，`dyld 2` 和 `dyld 3` 对**符号缺失**的反应不同。当缺失某个符号时：
+
+- 在使用 `dyld 2` 的系统上，APP 可成功启动，但会在第一次调用缺失的符号时 crash 。
+- 在使用 `dyld 3` 的系统上，APP 无法正常启动。
+
+`dyld 3` 目前对这种情况做了兼容，使得其行为与 `dyld 2` 保持一致，这样可以保障缺失符号的旧版 APP 能正常启动。
+
+其兼容方法是在 `dyld 3` 中内置了一个会自动 crash 的符号，如果 APP 启动时未找到符号，就将其绑定到这个符号上，因此，第一次调用时会 crash 。
+
+需要注意的是，这是当前 `dyld 3` 的兼容行为，未来可能会强制所有的符号解析在前面执行。也就是说，启动时如果缺失符号就会 crash ，这使得开发者能在开发时就发现代码的问题。
+
+#### 4. Linker Flag: _bind_at_load
+
+![dyld-3-eager-symbol-resolution-2.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-eager-symbol-resolution-2.jpeg)
+
+在使用 `dyld 2` 的系统上，可以在 **Other Linker Flags** 中添加 `_bind_at_load` 参数，可以强制 `dyld 2` 在启动时加载所有符号，这样可以提前发现问题，为 `dyld 3` 的到来做好准备。
+
+要注意的是，由于 `_bind_at_load` 会导致启动很慢，因此只能在 Debug build 中使用，不要在 Release build 中使用。
 
