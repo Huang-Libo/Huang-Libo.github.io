@@ -4,7 +4,7 @@ categories: [攻城狮, WWDC]
 tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 ---
 
-![cover.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/cover.jpeg)
+![dyld-cover.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-cover.jpeg)
 
 <p>
   <h2>目录</h2>
@@ -179,7 +179,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ### 共享缓存 (Shared Cache)
 
-![dyld-Shared-Cache.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-Shared-Cache.jpeg)
+![dyld-2.x-Shared-Cache.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2.x-Shared-Cache.jpeg)
 
 **共享缓存是包含所有系统 dylib 的单个文件。** 它是在 `iOS 3.1` 和 `macOS Snow Leopard (10.6)` 引入的，并**完全取代了 prebinding** 。
 
@@ -272,7 +272,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 ## dyld 2 向 dyld 3 的转变
 
-![dyld-2-optimization-method.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-optimization-method.jpeg)
+![dyld-2-to-dyld-3.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-2-to-dyld-3.jpeg)
 
 `dyld 3` 与 `dyld 2` 的主要区别是将大部分功能从*进程 (process)* 移到了*守护进程 (daemon)* 。
 
@@ -309,7 +309,7 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 ### 概览：dyld 3 由三部分组成
 
-![dyld-architecture-overview.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-overview.jpeg)
+![dyld-3-architecture-overview.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-architecture-overview.jpeg)
 
 `dyld 3` 有三个组件：
 
@@ -325,7 +325,7 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 ### 1. 进程外的 mach-o 解析器/编译器
 
-![dyld-architecture-1.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-1.jpeg)
+![dyld-3-architecture-1.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-architecture-1.jpeg)
 
 首先，`dyld 3` 包含一个进程外的 `mach-o` 解析器/编译器。
 
@@ -340,7 +340,7 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 ### 2. 运行启动闭包的进程内引擎
 
-![dyld-architecture-2.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-2.jpeg)
+![dyld-3-architecture-2.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-architecture-2.jpeg)
 
 然后，`dyld 3` 包含一个小型的进程内引擎，也就是说这部分功能会加载到 APP 的进程中，也是最常被使用到的模块。
 
@@ -356,7 +356,7 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 ### 3. 启动闭包缓存服务
 
-![dyld-architecture-3.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-architecture-3.jpeg)
+![dyld-3-architecture-3.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-architecture-3.jpeg)
 
 最后，`dyld 3` 包含一个*启动闭包缓存服务 (launch closure caching service)* 。
 
