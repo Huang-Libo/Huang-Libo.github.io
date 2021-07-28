@@ -1,5 +1,5 @@
 ---
-title: "[WIP]【WWDC17】优化 APP 启动之 dyld"
+title: "【WWDC17】优化 APP 启动之 dyld"
 categories: [攻城狮, WWDC]
 tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 ---
@@ -61,6 +61,11 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
     - [2. dyld 3 执行急切的符号解析 (Eager symbol resolution)](#2-dyld-3-执行急切的符号解析-eager-symbol-resolution)
     - [3. dyld 3 对符号缺失的兼容](#3-dyld-3-对符号缺失的兼容)
     - [4. Linker Flag: _bind_at_load](#4-linker-flag-_bind_at_load)
+  - [dlopen() / dlsym() / dladdr()](#dlopen--dlsym--dladdr)
+  - [dlclose()](#dlclose)
+  - [all_image_infos](#all_image_infos)
+  - [最佳实践](#最佳实践)
+- [Reference](#reference)
 
 ## 前言
 
@@ -446,3 +451,23 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 要注意的是，由于 `_bind_at_load` 会导致启动很慢，因此只能在 Debug build 中使用，不要在 Release build 中使用。
 
+### dlopen() / dlsym() / dladdr()
+
+![dyld-dlopen-dlsym-dladdr.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-dlopen-dlsym-dladdr.jpeg){: .normal width="600"}
+
+### dlclose()
+
+![dyld-dlclose.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-dlclose.jpeg){: .normal width="600"}
+
+### all_image_infos
+
+![dyld-all_image_infos.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-all_image_infos.jpeg){: .normal width="500"}
+
+### 最佳实践
+
+![dyld-best-practices.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-best-practices.jpeg)
+
+## Reference
+
+- 整理的字幕：<https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2017/413-App-Startup-Time-Past-Present-and-Future/Transcript-Edited.md>
+- 原始的 PDF：<https://devstreaming-cdn.apple.com/videos/wwdc/2017/413fmx92zo14voet8/413/413_app_startup_time_past_present_and_future.pdf?dl=1>
