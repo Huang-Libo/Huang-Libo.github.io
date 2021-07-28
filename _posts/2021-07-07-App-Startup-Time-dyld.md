@@ -53,6 +53,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [1. 进程外的 mach-o 解析器/编译器](#1-进程外的-mach-o-解析器编译器)
   - [2. 运行启动闭包的进程内引擎](#2-运行启动闭包的进程内引擎)
   - [3. 启动闭包缓存服务](#3-启动闭包缓存服务)
+- [为 dyld 3 做准备](#为-dyld-3-做准备)
+  - [潜在的问题](#潜在的问题)
 
 ## 前言
 
@@ -364,5 +366,20 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 在 `macOS` 上，第一次启动 APP 时有所不同，但之后再启动就能使用缓存的启动闭包了：
 
-- because you can **side load applications**, the **in-process engine can RPC out to the daemon if necessary on first launch**（???）, and then after that it will be able to use a cached closure just like everything else.
+- On macOS, because you can **side load applications**, the **in-process engine can RPC out to the daemon if necessary on first launch**（???）, and then after that it will be able to use a cached closure just like everything else.
+
+## 为 dyld 3 做准备
+
+### 潜在的问题
+
+![dyld-3-potential-issue.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-potential-issue.jpeg)
+
+在切换到 `dyld 3` 时，有一些潜在的问题需要注意：
+
+- `dyld 3` 完全兼容 `dyld 2.x` ，
+  - 但是一些旧 API 在 `dyld 3` 上会运行的较慢或者使用回退机制，因此开发者需要避免这种情况。
+  - 为 `dyld 2.x` 做的一些的优化可能已经无效了。
+- `dyld 3` 有*更严格的链接语义 (Stricter linking semantics)* ，
+  - 对于旧的二进制，会兼容旧的行为；
+  - 对于新的二进制，会导致 *linker error* 。
 
