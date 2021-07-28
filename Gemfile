@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem "jekyll-theme-chirpy", "~> 4.0"
+gem "jekyll-theme-chirpy", "~> 4.1"
 
 # 指定 http_parser 使用最新代码，解决路径中有空格导致 bundle install 失败的问题
 # 最好将项目放在不含`空格`的路径下。

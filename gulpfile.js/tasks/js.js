@@ -45,9 +45,10 @@ const postJs = () => {
       `${JS_SRC}/commons/*.js`,
       `${JS_SRC}/utils/img-extra.js`,
       `${JS_SRC}/utils/timeago.js`,
-      `${JS_SRC}/utils/lang-badge.js`,
       `${JS_SRC}/utils/checkbox.js`,
-      `${JS_SRC}/utils/copy-link.js`
+      `${JS_SRC}/utils/copy-link.js`,
+      // 'smooth-scroll.js' must be called after ToC is ready
+      // `${JS_SRC}/utils/smooth-scroll.js`
     ], 'post'
   );
 };
