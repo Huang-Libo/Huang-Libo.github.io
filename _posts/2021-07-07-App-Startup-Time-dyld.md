@@ -55,6 +55,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
   - [3. 启动闭包缓存服务](#3-启动闭包缓存服务)
 - [为 dyld 3 做准备](#为-dyld-3-做准备)
   - [潜在的问题](#潜在的问题)
+  - [__DATA 中未对齐的指针](#__data-中未对齐的指针)
 
 ## 前言
 
@@ -382,4 +383,23 @@ _dyld 2 与 dyld 3 执行流程的对比_
 - `dyld 3` 有*更严格的链接语义 (Stricter linking semantics)* ，
   - 对于旧的二进制，会兼容旧的行为；
   - 对于新的二进制，会导致 *linker error* 。
+
+### __DATA 中未对齐的指针
+
+![dyld-3-unaligned-pointer-1.jpge](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-unaligned-pointer-1.jpeg)
+
+假如 APP 中有一个*全局*的数据结构指向一个函数或者另一个*全局*的数据结构，那么这个指针需要在 APP 启动前被 *fix up* ，并且这个指针必须对齐、以获得最佳的性能。
+
+*fix up* 未对齐的指针要复杂得多：
+
+- 未对齐的指针会*跨越 (span)* 多个页面，这可能会导致更多的*页面错误 (page fault)* 和其他问题
+- 而且它们可能存在与*多处理器 (multiprocessor)* 相关的*原子性问题 (atomicity issues)*
+
+*静态连接器 (static linker)* 会对这种情况发出一个 *ld warning* ：指针没有在某地址上对齐。这通常是对应数据段的地址。
+
+下面将给出一个 C 中未对齐指针的案例。Swift 不允许这么做，因此，请多使用 Swift 。
+
+![dyld-3-unaligned-pointer-2.jpge](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-unaligned-pointer-2.jpeg)
+
+![dyld-3-unaligned-pointer-3.jpge](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-unaligned-pointer-3.jpeg)
 
