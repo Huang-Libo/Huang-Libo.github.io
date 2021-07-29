@@ -77,7 +77,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
 
 > 一些博文在介绍 `dyld` 时，把它的英文全称写错了，那个全称是 `FreeBSD` 上使用的。这里为了防止大家记成错的，就不提那个名称了。  
 >  
-> 虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但对 `dyld` 有自己的解释。
+> 虽然 `Darwin` 的内核也用了 `FreeBSD` 的一部分，但随着版本的迭代，已对 `dyld` 已有了自己的解释。
 
 在终端使用 `man dyld` 查看文档，可看出其全称是 **the dynamic linker** ：
 
