@@ -1,7 +1,7 @@
 ---
-title: "【WWDC17】优化 APP 启动之 dyld"
+title: "【WWDC17】优化 APP 启动（dyld 2 -> dyld 3）"
 categories: [攻城狮, WWDC]
-tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld, dyld3]
+tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld2, dyld3]
 ---
 
 ![dyld-cover.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-cover.jpeg)

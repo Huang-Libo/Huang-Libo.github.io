@@ -1,7 +1,7 @@
 ---
-title: "【WWDC19】优化 APP 启动"
+title: "【WWDC19】优化 APP 启动（基于 dyld 3）"
 categories: [攻城狮, WWDC]
-tags: [WWDC19, iOS, APP 性能优化, APP 启动优化]
+tags: [WWDC19, iOS, APP 性能优化, APP 启动优化, dyld 3]
 ---
 
 <p>
