@@ -12,6 +12,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - [前言](#前言)
   - [1. 谁想看这个 Session](#1-谁想看这个-session)
   - [2. 内容提要](#2-内容提要)
+- [Reference](#reference)
 ## 前言
 
 > 说明：这个 Session 的链接已打不开，不知为何下掉了，但在 [wwdc.io](https://wwdc.io) 的 macOS 应用中可以查看。
@@ -37,3 +38,6 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - 如何测量 `main()` 函数之前消耗的时间
   - 优化启动时间
 
+## Reference
+
+- 整理的字幕：<https://github.com/Bob-Playground/WWDC-Stuff/blob/master/2016/406_optimizing_app_startup_time/Transcript-Edited.md>
