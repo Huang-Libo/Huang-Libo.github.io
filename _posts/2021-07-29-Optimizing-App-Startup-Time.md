@@ -16,7 +16,8 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [术语](#术语)
   - [Segment](#segment)
   - [Section](#section)
-  - [通用的 segment](#通用的-segment)
+  - [segment 的类型](#segment-的类型)
+  - [Mach-O Univeral Files](#mach-o-univeral-files)
 - [Reference](#reference)
 
 ## 前言
@@ -80,11 +81,19 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 其名称由*下划线*和*小写字母*构成，如：`__text`，`__stubs` ，`__const` 等。
 
-### 通用的 segment
+### segment 的类型
+
+通用的 segment 有这些：
 
 - `__TEXT`：位于文件的开头处，包含 `Mach-O header` 、代码、只读的常量；
 - `__DATA`：包含所有的可读可写的内容，如：全局变量、静态变量等；
 - `__LINKEDIT`：包含关于如何加载这个程序的“元数据”，如：代码签名、符号表等。
+
+### Mach-O Univeral Files
+
+![Mach-O-Universal-Files.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Universal-Files.jpeg)
+
+通用二进制文件（胖二进制文件）是包含多个架构的二进制文件，它的起始处有一个 header，里面有个列表记录了所有的架构以及它们在文件中的偏移量。这个 header 的大小是*一个页*。
 
 
 ## Reference
