@@ -14,6 +14,9 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [2. 内容提要](#2-内容提要)
 - [Mach-O](#mach-o)
   - [术语](#术语)
+  - [Segment](#segment)
+  - [Section](#section)
+  - [通用的 segment](#通用的-segment)
 - [Reference](#reference)
 
 ## 前言
@@ -49,12 +52,40 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 
 `Mach-O` 是 *Mach Object File Format* 的缩写，它包含一系列文件类型：
 
-- **Executable**: APP 中主要的二进制文件
+- **Executable**: APP 或 APP extension 中主要的二进制文件
 - **Dylib**: 动态库（aka `DSO` 或 `DLL`）
-- **Bundle**: 无法被链接的 dylib ，只能用 `dlopen()` 打开，比如 plug-ins 。
+- **Bundle**: 无法被链接的特殊的 dylib ，只能用 `dlopen()` 打开，比如 macOS 上使用的 plug-ins 。
 
 **Image**: executable 或 dylib 或 bundle 。  
-**Framework**: 包含目录的 dylib，目录中有*资源文件*或*头文件*。
+**Framework**: 包含目录的 dylib，目录中有 dylib 需要的*资源文件*和*头文件*。
+
+### Segment
+
+![Mach-O-Segments.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Segments.jpeg){: .normal width="500"}
+
+`Mach-O` 文件由多个 segment 组成，其的名称由*下划线*和*大写字母*构成，如：`__TEXT`，`__DATA`，`__LINKEDIT`。
+
+每个 segment 都是*页大小 (page size)* 的倍数，*页大小*在不同的设备上不一样：
+
+- 在 arm64 上是 **16KB**
+- 在其他架构上是 **4KB**
+
+在上图示例中，`__TEXT` 包含 3 个页，`__DATA` 和 `__LINKEDIT` 各包含一个页。
+
+### Section
+
+![Mach-O-Sections.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Sections.jpeg){: .normal width="500"}
+
+section 是编译器忽略的东西，它们只是 segment 的子区域。它们的大小没有被限制为页大小的倍数，但它们是不重叠的 (non-overlapping) 。
+
+其名称由*下划线*和*小写字母*构成，如：`__text`，`__stubs` ，`__const` 等。
+
+### 通用的 segment
+
+- `__TEXT`：位于文件的开头处，包含 `Mach-O header` 、代码、只读的常量；
+- `__DATA`：包含所有的可读可写的内容，如：全局变量、静态变量等；
+- `__LINKEDIT`：包含关于如何加载这个程序的“元数据”，如：代码签名、符号表等。
+
 
 ## Reference
 
