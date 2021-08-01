@@ -12,7 +12,10 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - [前言](#前言)
   - [1. 谁想看这个 Session](#1-谁想看这个-session)
   - [2. 内容提要](#2-内容提要)
+- [Mach-O](#mach-o)
+  - [术语](#术语)
 - [Reference](#reference)
+
 ## 前言
 
 > 说明：这个 Session 的链接已打不开，不知为何下掉了，但在 [wwdc.io](https://wwdc.io) 的 macOS 应用中可以查看。
@@ -37,6 +40,21 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - 实践
   - 如何测量 `main()` 函数之前消耗的时间
   - 优化启动时间
+
+## Mach-O
+
+### 术语
+
+![Mach-O-Terminology.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Terminology.jpeg){: .normal width="500"}
+
+`Mach-O` 是 *Mach Object File Format* 的缩写，它包含一系列文件类型：
+
+- **Executable**: APP 中主要的二进制文件
+- **Dylib**: 动态库（aka `DSO` 或 `DLL`）
+- **Bundle**: 无法被链接的 dylib ，只能用 `dlopen()` 打开，比如 plug-ins 。
+
+**Image**: executable 或 dylib 或 bundle 。  
+**Framework**: 包含目录的 dylib，目录中有*资源文件*或*头文件*。
 
 ## Reference
 
