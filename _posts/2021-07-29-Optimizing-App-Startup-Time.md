@@ -16,7 +16,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [术语](#术语)
   - [Segment](#segment)
   - [Section](#section)
-  - [segment 的类型](#segment-的类型)
+  - [Segment 的类型](#segment-的类型)
   - [Mach-O Univeral Files](#mach-o-univeral-files)
 - [Reference](#reference)
 
@@ -30,8 +30,10 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 
 ![audience.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/audience.jpeg)
 
+Apple 的市场团队做了一些调查，结果显示这 3 个群体将在这个 session 中有所收获：
+
 - 当前开发的 APP 启动太慢
-- 想让 APP 保持快速启动
+- 不想成为前一类人（想让 APP 保持快速启动）
 - 想了解系统的运作方式
 
 ### 2. 内容提要
@@ -39,10 +41,10 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - 理论
   - `Mach-O` 格式
   - 虚拟内存 *(Virtual Memory)*的基础
-  - `Mach-O` 二进制文件是如何加载和准备的
+  - `Mach-O` 二进制文件的加载
   - `main()` 函数之前发生的所有事情
 - 实践
-  - 如何测量 `main()` 函数之前消耗的时间
+  - 测量 `main()` 函数之前消耗的时间
   - 优化启动时间
 
 ## Mach-O
@@ -64,7 +66,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 
 ![Mach-O-Segments.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Segments.jpeg){: .normal width="500"}
 
-`Mach-O` 文件由多个 segment 组成，其的名称由*下划线*和*大写字母*构成，如：`__TEXT`，`__DATA`，`__LINKEDIT`。
+`Mach-O` 文件由多个 segment 组成，其名称由*下划线*和*大写字母*构成，如：`__TEXT`，`__DATA`，`__LINKEDIT`。
 
 每个 segment 都是*页大小 (page size)* 的倍数，*页大小*在不同的设备上不一样：
 
@@ -81,7 +83,7 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 其名称由*下划线*和*小写字母*构成，如：`__text`，`__stubs` ，`__const` 等。
 
-### segment 的类型
+### Segment 的类型
 
 通用的 segment 有这些：
 
@@ -91,9 +93,16 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ### Mach-O Univeral Files
 
-![Mach-O-Universal-Files.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Universal-Files.jpeg)
+![Mach-O-Universal-Files-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Universal-Files-1.jpeg){: .normal width="450"}
 
-通用二进制文件（胖二进制文件）是包含多个架构的二进制文件，它的起始处有一个 header，里面有个列表记录了所有的架构以及它们在文件中的偏移量。这个 header 的大小是*一个页*。
+- 假设我们在构建一个 64 位的 iOS 应用 ，Xcode 会为我们生成一个 arm64 架构的 Mach-O 文件；
+- 如果改为也支持 32 位的设备，当我们在 Xcode 内 rebuild 的时候，会生成一个新的 armv7s 架构的 Mach-O 文件。
+
+这两个文件最终会合并为一个新的文件，这个文件就是 *通用 Mach-O 文件 (Mach-O Univeral Files)* ，或*通用二进制文件*、*胖二进制文件*。
+
+![Mach-O-Universal-Files-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Universal-Files-2.jpeg){: .normal width="700"}
+
+由此可知，*Mach-O Univeral Files* 是包含多个架构的二进制文件，它的起始处有一个 `Fat Header`，里面有个列表记录了所有的架构以及它们在文件中的偏移量。这个 `Fat Header` 的大小是*一个页*。
 
 
 ## Reference
