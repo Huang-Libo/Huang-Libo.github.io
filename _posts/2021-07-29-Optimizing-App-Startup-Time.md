@@ -18,6 +18,8 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [Section](#section)
   - [Segment 的类型](#segment-的类型)
   - [Mach-O Univeral Files](#mach-o-univeral-files)
+- [虚拟内存简介](#虚拟内存简介)
+  - [间接层](#间接层)
 - [Reference](#reference)
 
 ## 前言
@@ -103,6 +105,34 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 ![Mach-O-Universal-Files-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Universal-Files-2.jpeg){: .normal width="500"}
 
 由此可知，*Mach-O Univeral Files* 是包含多个架构的二进制文件，它的起始处有一个 `Fat Header`，里面有个列表记录了所有的架构以及它们在文件中的偏移量。这个 `Fat Header` 的大小是*一个页*。
+
+## 虚拟内存简介
+
+![Virtual-Memory.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Virtual-Memory.jpeg){: .normal width="500"}
+
+你也许会感到疑惑：
+
+- 为什么 segment 的大小需要是*页大小*的整数倍？
+- 为什么 `Mach-O Header` 是*一个页*的大小，这浪费了很多空间。
+
+它们基于*页*的原因，与*虚拟内存*有关。
+
+### 间接层
+
+> The adage in software engineering that every problem can be solved by adding a level of indirection
+
+软件工程中有句名言：每个问题都可以通过增加*间接层 (indirection)* 来解决。
+
+*虚拟内存 (Virtual Memory)*解决的问题是，当系统中有很多*进程 (process)* 时，如何管理机器的*物理内存 (physical RAM)* 。
+
+系统设计者的做法就是添加了一个间接层：每个进程都是一个*逻辑地址空间 (logical address space)* ，会被*映射*到一些*物理内存页 (physical page of RAM)* 。
+
+这个映射不一定是一对一的：
+
+- 某个进程中的一些*逻辑地址*可能没有对应的*物理 RAM* ；
+- 多个进程的*逻辑地址*可能映射到相同的*物理 RAM* 。
+
+这种设计提供了很多机会。
 
 
 ## Reference
