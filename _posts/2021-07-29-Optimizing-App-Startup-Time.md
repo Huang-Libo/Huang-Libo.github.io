@@ -27,6 +27,8 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
     - [4. 写时复制 (copy on write)](#4-写时复制-copy-on-write)
     - [5. Dirty page & Clean page](#5-dirty-page--clean-page)
     - [6. 页的权限](#6-页的权限)
+- [Mach-O 文件加载到虚拟内存](#mach-o-文件加载到虚拟内存)
+  - [示例：第一个进程加载 dylib](#示例第一个进程加载-dylib)
 - [Reference](#reference)
 
 ## 前言
@@ -179,6 +181,18 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 #### 6. 页的权限
 
 可以对 `Mach-O` 文件的*每个页*设置访问权限。权限可以是 r、w、x 的任意组合。
+
+## Mach-O 文件加载到虚拟内存
+
+### 示例：第一个进程加载 dylib
+
+![Mach-O-Image-Loading-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-1.jpeg){: .normal width="600"}
+
+如图所示，这里有一个 dylib 文件，*我们不是在内存中读取它而是在内存中映射它 (rather than reading it in memory we've mapped it in memory)* 。在内存中，这个 dylib 需要 8 页。
+
+这里的节省的不同之处在于这些*填充的 0 (ZeroFills)* 。大部分全局变量的初始值是 0 ，因此，*静态链接器*进行了优化，将所有值为零的全局变量移到末尾，这样就不会占用磁盘空间。
+
+在 VM 中则不同，我们使用 VM 的特性告诉 VM 系统，这个页面第一次被访问时，用 0 填充它，因此它不需要读取。
 
 
 ## Reference
