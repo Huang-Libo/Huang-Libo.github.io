@@ -20,6 +20,13 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [Mach-O Univeral Files](#mach-o-univeral-files)
 - [虚拟内存简介](#虚拟内存简介)
   - [间接层](#间接层)
+  - [虚拟内存的特性](#虚拟内存的特性)
+    - [1. Page fault](#1-page-fault)
+    - [2. 共享物理内存](#2-共享物理内存)
+    - [3. File backed mapping](#3-file-backed-mapping)
+    - [4. Copy on write](#4-copy-on-write)
+    - [5. Clean page & dirty page](#5-clean-page--dirty-page)
+    - [6. 页的权限](#6-页的权限)
 - [Reference](#reference)
 
 ## 前言
@@ -123,16 +130,55 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 软件工程中有句名言：每个问题都可以通过增加*间接层 (indirection)* 来解决。
 
-*虚拟内存 (Virtual Memory)*解决的问题是，当系统中有很多*进程 (process)* 时，如何管理机器的*物理内存 (physical RAM)* 。
+*虚拟内存 (VM / Virtual Memory)*解决的问题是，当系统中有很多*进程 (process)* 时，如何管理机器的*物理内存 (physical RAM)* 。
 
 系统设计者的做法就是添加了一个间接层：每个进程都是一个*逻辑地址空间 (logical address space)* ，会被*映射*到一些*物理内存页 (physical page of RAM)* 。
 
 这个映射不一定是一对一的：
 
-- 某个进程中的一些*逻辑地址*可能没有对应的*物理 RAM* ；
-- 多个进程的*逻辑地址*可能映射到相同的*物理 RAM* 。
+- 某个进程中的一些*逻辑地址*可能没有映射到*物理内存* ；
+- 多个进程的*逻辑地址*可能映射到相同的*物理内存* 。
 
 这种设计提供了很多机会。
+
+### 虚拟内存的特性
+
+#### 1. Page fault
+
+如果**某进程**内的一个*逻辑地址*没有映射到*物理内存* ，当这个进程访问该逻辑地址时，就会发生一次 **page fault** 。此时，内核将停止这个进程，并试图找出需要发生什么。
+
+#### 2. 共享物理内存
+
+**两个进程**的不同的*逻辑地址*可能会映射到相同的*物理页*，也就是说这两个进程可共享相同的*物理内存*。
+
+#### 3. File backed mapping
+
+...（这里需要更详细的解释）
+
+可以通过 `mmap` 调用告诉 `VM` 系统，将文件的*部分内容*映射到进程中的某个地址范围，而不是将整个文件读入。当 page fault 发生的时候，只会读取缺失的那一个页，也就是对文件执行惰性加载。
+
+因此，Mach-O 的 `__TEXT` 段可以被映射到多个进程，可以被惰性读取，可以在多个进程之间共享。
+
+#### 4. Copy on write
+
+对于 `__DATA` 段，由于它是可读可写的，因此会对它使用 *copy on write* 技术，这与 *Apple file system* 上拷贝文件的操作类似。
+
+其机制是，当多个进程只是读取*全局变量*时，会在多个进程之间地共享 `__DATA` 页；当某个进程尝试往 `__DATA` 页写入内容时，就会触发 *copy on write* 。
+
+*copy on write* 导致内核将该*页*复制到另一段*物理内存* 中，并将*映射*重定向到该*物理内存*中。所以这个进程就有了它自己的那个*页*的副本。
+
+#### 5. Clean page & dirty page
+
+上面提到的通过 copy 得到的 page 就是 *dirty page* 。
+
+- **dirty page**：包含特定进程信息的*页*。
+- **clean page**：不包含特定进程信息的*页*。如果需要，内核可以重新生成 *clean page* ，比如重新从磁盘读取。
+
+由此可知，dirty page 比 clean page 昂贵得多。
+
+#### 6. 页的权限
+
+可以对 `Mach-O` 文件的*每个页*设置访问权限。权限可以是 r、w、x 的任意组合。
 
 
 ## Reference
