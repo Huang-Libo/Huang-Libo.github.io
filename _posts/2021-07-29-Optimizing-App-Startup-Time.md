@@ -4,7 +4,7 @@ categories: [攻城狮, WWDC]
 tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dyld 2]
 ---
 
-![cover.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/cover.jpeg)
+![cover.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/cover.jpeg){: .normal width="600"}
 <p>
   <h2>目录</h2>
 </p>
@@ -21,7 +21,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - [虚拟内存简介](#虚拟内存简介)
   - [间接层](#间接层)
   - [虚拟内存的特性](#虚拟内存的特性)
-    - [1. 缺页 (page fault)](#1-缺页-page-fault)
+    - [1. 缺页异常 (page fault)](#1-缺页异常-page-fault)
     - [2. 多个进程共享物理内存](#2-多个进程共享物理内存)
     - [3. File backed mapping](#3-file-backed-mapping)
     - [4. 写时复制 (copy on write)](#4-写时复制-copy-on-write)
@@ -145,9 +145,9 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ### 虚拟内存的特性
 
-#### 1. 缺页 (page fault)
+#### 1. 缺页异常 (page fault)
 
-如果**某进程**内的一个*逻辑地址*没有映射到*物理内存* ，当这个进程访问该逻辑地址时，就会发生一次 **缺页** 。此时，内核将停止这个进程，并试图找出需要发生什么。
+如果**某进程**内的一个*逻辑地址*没有映射到*物理内存* ，当这个进程访问该逻辑地址时，就会发生一次 **缺页异常** 。此时，内核将停止这个进程，并试图找出需要发生什么。
 
 #### 2. 多个进程共享物理内存
 
@@ -184,18 +184,36 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ## Mach-O 文件加载到虚拟内存
 
-在接下来的示例中，将介绍两个进程加载同一个 dylib 的详细流程。
+在接下来的示例中，将介绍两个进程加载同一个 dylib 的详细流程。（假设这个 dylib 之前还没有被加载过）
 
 ### 示例：第一个进程加载 dylib
 
-![Mach-O-Image-Loading-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-1.jpeg){: .normal width="600"}
+![Mach-O-Image-Loading-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-1.jpeg)
 
 如图所示，这里有一个 dylib 文件，*我们不是在内存中读取它而是在内存中映射它 (rather than reading it in memory we've mapped it in memory)* 。在内存中，这个 dylib 需要 8 页。
 
-这里的节省的不同之处在于这些*填充的 0 (ZeroFills)* 。大部分全局变量的初始值是 0 ，因此，*静态链接器*进行了优化，将所有值为零的全局变量移到末尾，这样就不会占用磁盘空间。在 VM 系统中，当这个页第一次被访问时，在 VM 中会用 0 填充，因此不需要读取。
+这里的节省的不同之处在于这些*填充的 0 (ZeroFills)* 。大部分全局变量的初始值是 0 ，因此，*静态链接器*进行了优化，将所有值为零的全局变量移到末尾，这样就不会占用磁盘空间。在虚拟内存中，当这个*页*第一次被访问时会用 0 填充，因此不需要读取。
 
+![Mach-O-Image-Loading-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-2.jpeg)
 
+dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header`，此时 `Mach-O header` 还没有加载到物理内存中，因此会发生一次缺页异常。然后，内核将读取 `Mach-O` 文件的第一页并置于物理内存中，再设置好*虚拟内存*到*物理内存*的映射。
 
+![Mach-O-Image-Loading-3.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-3.jpeg)
+
+现在，dyld 就可以开始读取 `Mach-O header` 了。`Mach-O header` 会告知 dyld 需要去 `__LINKEDIT` *页*中读取一些信息，此时，会再发生一次缺页异常。同样，内核会将 `__LINKEDIT` 读入物理内存并设置好映射。
+
+![Mach-O-Image-Loading-4.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-4.jpeg)
+
+接着，这个 `__LINKEDIT` *页*会告诉 dyld 需要对 `__DATA` *页*做一些 Fix-ups ，以使这个 dylib 可运行。读取这个 `__DATA` *页*的流程与之前类似。
+
+![Mach-O-Image-Loading-5.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-5.jpeg)
+
+不同的是，dyld 在做 Fix-ups 时，会往这个 `__DATA` *页*写入内容，此时就触发了*写时复制*，这个 page 就变成了 dirty page 。
+
+小结：
+
+- 如果我们只是简单地分配 8 页空间，然后把整个 dylib 读入，会产生 8 个 dirty page ；
+- 我们按上述模式按*页*加载，只会产生 1 个 dirty page 和 2 个 clean page 。
 
 ## Reference
 
