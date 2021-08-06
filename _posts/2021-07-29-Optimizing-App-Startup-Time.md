@@ -29,6 +29,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
     - [6. 页的权限](#6-页的权限)
 - [Mach-O 文件加载到虚拟内存](#mach-o-文件加载到虚拟内存)
   - [示例：第一个进程加载 dylib](#示例第一个进程加载-dylib)
+  - [示例：第二个进程加载 dylib](#示例第二个进程加载-dylib)
 - [Reference](#reference)
 
 ## 前言
@@ -210,10 +211,40 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 不同的是，dyld 在做 Fix-ups 时，会往这个 `__DATA` *页*写入内容，此时就触发了*写时复制*，这个 page 就变成了 dirty page 。
 
-小结：
+第一个进程加载 dylib 的小结：
 
 - 如果我们只是简单地分配 8 页空间，然后把整个 dylib 读入，会产生 8 个 dirty page ；
-- 我们按上述模式按*页*加载，只会产生 1 个 dirty page 和 2 个 clean page 。
+- 我们按上述模式按*页*加载，只会产生 1 个 dirty page 和 2 个 clean page 。（小编注：演讲者应该是漏掉了 `__DATA` 的 clean page ，所以应该是 3 个 clean page ）
+
+### 示例：第二个进程加载 dylib
+
+![Mach-O-Image-Loading-6.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-6.jpeg)
+
+当第二个进程也加载这个 dylib 时，流程是相似的。
+
+![Mach-O-Image-Loading-7.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-7.jpeg)
+
+首先 dyld 查看 dylib 的 `Mach-O header`，这时内核发现它已经在*物理内存*中了，因此只需要简单地设置映射就能复用这个*页*了，这个过程没有 `IO` 操作。
+
+![Mach-O-Image-Loading-8.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-8.jpeg)
+
+同样，`__LINKEDIT` 也在内存中，可直接复用。
+
+![Mach-O-Image-Loading-9.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-9.jpeg)
+
+接下来是 `__DATA` 。内核会先查看这个 `__DATA` *页*的 clean page 是否还在物理内存中，如果还在就可以直接复用，如果没有就需要从磁盘中重新读取。
+
+![Mach-O-Image-Loading-10.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-10.jpeg)
+
+同样地，dyld 对这个 `__DATA` *页*执行 Fix-ups 时会触发*写时复制*，并产生 1 个 dirty page 。
+
+![Mach-O-Image-Loading-11.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-11.jpeg)
+
+由于只有在 dyld 执行上述操作的时候才需要用到 `__LINKEDIT` ，因此 dyld 会在完成这些操作后告知内核它已不再需要 `__LINKEDIT` ，可以在其他程序需要内存的时候将 `__LINKEDIT` 占用的内存回收。
+
+第二个进程加载 dylib 的小结：
+
+这两个进程共享了同一个 dylib ，如果不共享且全部加载的话，会产生 16 个 dirty page ，但使用上述的操作方式，只产生了 2 个 dirty page 和 1 个共享的 clean page 。（小编注：演讲者应该是漏掉了 `__DATA` 的 clean page ，所以应该是 2 个共享的 clean page ）
 
 ## Reference
 
