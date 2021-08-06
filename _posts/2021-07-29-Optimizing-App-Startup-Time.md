@@ -30,6 +30,9 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - [Mach-O 文件加载到虚拟内存](#mach-o-文件加载到虚拟内存)
   - [示例：第一个进程加载 dylib](#示例第一个进程加载-dylib)
   - [示例：第二个进程加载 dylib](#示例第二个进程加载-dylib)
+  - [安全性](#安全性)
+    - [1. 地址空间布局随机化](#1-地址空间布局随机化)
+    - [2. 代码签名](#2-代码签名)
 - [Reference](#reference)
 
 ## 前言
@@ -245,6 +248,16 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 第二个进程加载 dylib 的小结：
 
 这两个进程共享了同一个 dylib ，如果不共享且全部加载的话，会产生 16 个 dirty page ，但使用上述的操作方式，只产生了 2 个 dirty page 和 1 个共享的 clean page 。（小编注：演讲者应该是漏掉了 `__DATA` 的 clean page ，所以应该是 2 个共享的 clean page ）
+
+### 安全性
+
+#### 1. 地址空间布局随机化
+
+*地址空间布局随机化 (Address Space Layout Randomization, ASLR)*，指 `Mach-O` 文件会被加载到随机的地址上。
+
+#### 2. 代码签名
+
+*代码签名 (Code Signing)* 是以*页*为单位的，`Mach-O` 文件的每一*页*都要被哈希，哈希值会在*页*被载入的时候验证。
 
 ## Reference
 
