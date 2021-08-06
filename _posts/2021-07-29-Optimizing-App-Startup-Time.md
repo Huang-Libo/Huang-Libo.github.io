@@ -134,12 +134,12 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 *虚拟内存 (Virtual Memory, VM)*解决的问题是，当系统中有很多*进程 (process)* 时，如何管理机器的*物理内存 (physical RAM)* 。
 
-系统设计者的做法就是添加了一个间接层：每个进程都是一个*逻辑地址空间 (logical address space)* ，会被*映射*到一些*物理内存页 (physical page of RAM)* 。
+系统设计者的做法就是添加了一个间接层：每个进程都是一个*逻辑地址空间 (logical address space)* ，它们会被*映射*到一些*物理内存页 (physical page of RAM)* 。
 
 这个映射不一定是一对一的：
 
 - 某个进程中的一些*逻辑地址*可能没有映射到*物理内存* ；
-- 多个进程的*逻辑地址*可能映射到相同的*物理内存* 。
+- 多个进程的*逻辑地址*可能会映射到相同的*物理内存* 。
 
 这种设计提供了很多机会。
 
@@ -184,15 +184,17 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ## Mach-O 文件加载到虚拟内存
 
+在接下来的示例中，将介绍两个进程加载同一个 dylib 的详细流程。
+
 ### 示例：第一个进程加载 dylib
 
 ![Mach-O-Image-Loading-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-1.jpeg){: .normal width="600"}
 
 如图所示，这里有一个 dylib 文件，*我们不是在内存中读取它而是在内存中映射它 (rather than reading it in memory we've mapped it in memory)* 。在内存中，这个 dylib 需要 8 页。
 
-这里的节省的不同之处在于这些*填充的 0 (ZeroFills)* 。大部分全局变量的初始值是 0 ，因此，*静态链接器*进行了优化，将所有值为零的全局变量移到末尾，这样就不会占用磁盘空间。
+这里的节省的不同之处在于这些*填充的 0 (ZeroFills)* 。大部分全局变量的初始值是 0 ，因此，*静态链接器*进行了优化，将所有值为零的全局变量移到末尾，这样就不会占用磁盘空间。在 VM 系统中，当这个页第一次被访问时，在 VM 中会用 0 填充，因此不需要读取。
 
-在 VM 中则不同，我们使用 VM 的特性告诉 VM 系统，这个页面第一次被访问时，用 0 填充它，因此它不需要读取。
+
 
 
 ## Reference
