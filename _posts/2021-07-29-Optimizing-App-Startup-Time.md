@@ -33,6 +33,9 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [安全性](#安全性)
     - [1. 地址空间布局随机化](#1-地址空间布局随机化)
     - [2. 代码签名](#2-代码签名)
+- [内核的工作](#内核的工作)
+  - [1. 把 APP 载入进程中](#1-把-app-载入进程中)
+  - [2. 把 dyld 载入进程中](#2-把-dyld-载入进程中)
 - [Reference](#reference)
 
 ## 前言
@@ -57,7 +60,7 @@ Apple 的市场团队做了一些调查，结果显示这 3 个群体将在此 s
   - `Mach-O` 格式
   - 虚拟内存 *(Virtual Memory)*的基础
   - `Mach-O` 二进制文件的加载
-  - `main()` 函数之前发生的所有事情
+  - 从*系统调用* `exec()` 到应用的 `main()` 函数之间发生的所有事情
 - 实践
   - 测量 `main()` 函数之前消耗的时间
   - 优化启动时间
@@ -188,7 +191,9 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ## Mach-O 文件加载到虚拟内存
 
-在接下来的示例中，将介绍两个进程加载同一个 dylib 的详细流程。（假设这个 dylib 之前还没有被加载过）
+前面分别介绍了 `Mach-O` 和*虚拟内存*，接下来我们用一个例子来看看它俩是如何协作的。
+
+在接下来的示例中，将介绍两个进程加载同一个 dylib 的详细流程（假设这个 dylib 之前还没有被加载过）。
 
 ### 示例：第一个进程加载 dylib
 
@@ -212,7 +217,7 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ![Mach-O-Image-Loading-5.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-5.jpeg)
 
-不同的是，dyld 在做 Fix-ups 时，会往这个 `__DATA` *页*写入内容，此时就触发了*写时复制*，这个 page 就变成了 dirty page 。
+与前面不同的是，dyld 在做 Fix-ups 时，会往这个 `__DATA` *页*写入内容，此时就触发了*写时复制*，就产生了一个 dirty page 。
 
 第一个进程加载 dylib 的小结：
 
@@ -243,7 +248,7 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ![Mach-O-Image-Loading-11.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-11.jpeg)
 
-由于只有在 dyld 执行上述操作的时候才需要用到 `__LINKEDIT` ，因此 dyld 会在完成这些操作后告知内核它已不再需要 `__LINKEDIT` ，可以在其他程序需要内存的时候将 `__LINKEDIT` 占用的内存回收。
+由于只有在 dyld 执行上述操作的时候才需要用到 `__LINKEDIT` ，因此 dyld 会在完成这些操作后告知内核它已不再需要 `__LINKEDIT` ，内核可以在其他程序需要内存的时候将 `__LINKEDIT` 占用的内存回收。
 
 第二个进程加载 dylib 的小结：
 
@@ -258,6 +263,33 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 #### 2. 代码签名
 
 *代码签名 (Code Signing)* 是以*页*为单位的，`Mach-O` 文件的每一*页*都要被哈希，哈希值会在*页*被载入的时候验证。
+
+## 内核的工作
+
+### 1. 把 APP 载入进程中
+
+![Kernel-Loads-APP.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Kernel-Loads-APP.jpeg){: .normal width="600"}
+
+`exec()` 是一个*系统调用 (system call)* 。在陷入内核空间后，告诉内核想用这个新程序替换某个进程，内核就会删除该进程的整个地址空间，并映射用户指定的可执行文件到这个进程。
+
+由于使用了 `ASLR`，dyld 会把 APP 映射到一个随机地址，然后把从 0 到这个随机地址的区域标识为*不可访问 (inaccessible)* ，也就是*不可读、不可写、不可执行*。这块区域的大小在不同平台上不一样：
+
+- 在 32 位的系统上至少是 **4KB** ；
+- 在 64 位的系统上至少是 **4GB** 。
+
+在 Unix 最初的二、三十年里，生活很轻松，因为需要做的就是映射一个程序，把 PC 设置给这个程序，然后开始运行这个程序。
+
+直到后来，动态库被发明了。
+
+### 2. 把 dyld 载入进程中
+
+![Kernel-Loads-dyld.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Kernel-Loads-dyld.jpeg){: .normal width="600"}
+
+那么谁负责加载 dylib 呢？
+
+他们很快意识到，动态库的加载很快就变得非常复杂，而系统内核的开发者不希望让内核来做这些工作，所以就创建了一个辅助程序。在 Apple 的平台中，这个辅助程序被称为 **dyld** ，在其他 Unix 上被称作 **LD.SO** 。
+
+因此，当内核把 APP 映射到进程后，内核会映射另一个叫 dyld 的 `Mach-O` 到这个进程的另一个随机地址中。然后，将 `PC` 设置给 dyld ，让 dyld 来完成这个进程的启动。
 
 ## Reference
 
