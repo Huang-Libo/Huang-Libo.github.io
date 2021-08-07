@@ -36,6 +36,8 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 - [内核的工作](#内核的工作)
   - [1. 把 APP 载入进程中](#1-把-app-载入进程中)
   - [2. 把 dyld 载入进程中](#2-把-dyld-载入进程中)
+- [dyld 的执行步骤](#dyld-的执行步骤)
+  - [1. 递归地加载所有依赖的 dylib](#1-递归地加载所有依赖的-dylib)
 - [Reference](#reference)
 
 ## 前言
@@ -277,7 +279,9 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 - 在 32 位的系统上至少是 **4KB** ；
 - 在 64 位的系统上至少是 **4GB** 。
 
-在 Unix 最初的二、三十年里，生活很轻松，因为需要做的就是映射一个程序，把 PC 设置给这个程序，然后开始运行这个程序。
+它捕获 `NULL` 指针引用，以及*指针截断错误 (pointer truncation error)* 。
+
+在 Unix 最初的二、三十年里，启动进程比较轻松，因为需要做的就是映射一个程序，把 PC 设置给这个程序，然后开始运行这个程序。
 
 直到后来，动态库被发明了。
 
@@ -285,11 +289,37 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ![Kernel-Loads-dyld.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Kernel-Loads-dyld.jpeg){: .normal width="600"}
 
+> 请注意，这里介绍的是 `dyld 2` 。  
+> `dyld 2` 会被全部加载到进程中；而 `dyld 3` 被**拆成了 3 个主要部分**，且大部分模块不会被加载到**应用的进程**中，而是以**守护进程 (daemon)** 的形式存在，只有负责加载*启动闭包 (launch closure)* 的模块会被加载到**应用的进程**中。
+
 那么谁负责加载 dylib 呢？
 
 他们很快意识到，动态库的加载很快就变得非常复杂，而系统内核的开发者不希望让内核来做这些工作，所以就创建了一个辅助程序。在 Apple 的平台中，这个辅助程序被称为 **dyld** ，在其他 Unix 上被称作 **LD.SO** 。
 
-因此，当内核把 APP 映射到进程后，内核会映射另一个叫 dyld 的 `Mach-O` 到这个进程的另一个随机地址中。然后，将 `PC` 设置给 dyld ，让 dyld 来完成这个进程的启动。
+因此，当内核把 APP 映射到进程后，内核会把另一个叫 dyld 的 `Mach-O` 映射到这个进程的另一个随机地址中。然后，将 `PC` 设置给 dyld ，让 dyld 来完成这个进程的启动。
+
+## dyld 的执行步骤
+
+> 请注意，这是 `dyld 2` 的执行步骤。
+
+![dyld-2-Steps-Overview.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Steps-Overview.jpeg){: .normal width="600"}
+
+### 1. 递归地加载所有依赖的 dylib
+
+![dyld-2-load-dylibs-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-1.jpeg){: .normal width="600"}
+
+首先，内核已经把 APP 加载到进程的虚拟内存中，dyld 会读取 APP 的 `Mach-O Header` 中的 dylib 依赖列表，然后 dyld 再去查找每一个 dylib 。
+
+每当找到一个 dylib ，dyld 会将其打开并查看文件的开头部分，以确定它是一个 `Mach-O` 文件，**验证它、查找它的代码签名、然后将代码签名注册到内核中**。
+
+接着，就能对 dylib 的每个 segment 调用 `mmap()` 方法了。
+
+![dyld-2-load-dylibs-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-2.jpeg){: .normal width="600"}
+
+APP 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而他们可能又依赖了其他 dylib ，因此 dyld 会递归地执行这项任务，直到所有依赖的 dylib 都加载完成。
+
+平均而言，Apple 系统上的 APP 需要加载 1~400 个 dylib ，所以要加载的 dylib 非常多。幸运的是，它们大部分是系统的 dylib ，Apple 对它们做了大量优化，在构建/升级系统时，会*预计算*和*预缓存*大量工作，以加快 dylib 的加载速度。因此系统的 dylib 加载非常快。
+
 
 ## Reference
 
