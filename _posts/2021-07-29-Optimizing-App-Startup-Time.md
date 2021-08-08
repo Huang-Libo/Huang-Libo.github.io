@@ -37,6 +37,9 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [2. 把 dyld 载入进程中](#2-把-dyld-载入进程中)
 - [dyld 的执行步骤](#dyld-的执行步骤)
   - [1. 递归地加载所有依赖的 dylib](#1-递归地加载所有依赖的-dylib)
+  - [2. Fix-ups](#2-fix-ups)
+    - [位置无关代码](#位置无关代码)
+    - [Rebasing & Binding](#rebasing--binding)
 - [Reference](#reference)
 
 ## 前言
@@ -299,11 +302,11 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 > 请注意，这是 `dyld 2` 的执行步骤。
 
-![dyld-2-Steps-Overview.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Steps-Overview.jpeg){: .normal width="600"}
+![dyld-2-Steps-Overview.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Steps-Overview.jpeg)
 
 ### 1. 递归地加载所有依赖的 dylib
 
-![dyld-2-load-dylibs-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-1.jpeg){: .normal width="600"}
+![dyld-2-load-dylibs-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-1.jpeg)
 
 首先，内核已经把 APP 加载到进程的虚拟内存中，dyld 会读取 APP 的 `Mach-O Header` 中的 dylib 依赖列表，然后 dyld 再去查找每一个 dylib 。
 
@@ -311,12 +314,46 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 接着，就能对 dylib 的每个 segment 调用 `mmap()` 方法了。
 
-![dyld-2-load-dylibs-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-2.jpeg){: .normal width="600"}
+![dyld-2-load-dylibs-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-2.jpeg)
 
 APP 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而他们可能又依赖了其他 dylib ，因此 dyld 会递归地执行这项任务，直到所有依赖的 dylib 都加载完成。
 
 平均而言，Apple 系统上的 APP 需要加载 1~400 个 dylib ，所以要加载的 dylib 非常多。幸运的是，它们大部分是系统的 dylib ，Apple 对它们做了大量优化，在构建/升级系统时，会*预计算*和*预缓存*大量工作，以加快 dylib 的加载速度。因此系统的 dylib 加载非常快。
 
+### 2. Fix-ups
+
+![dyld-2-Fix-ups-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Fix-ups-1.jpeg)
+
+#### 位置无关代码
+
+现在 APP 依赖的 dylib 都加载了，但是它们还处于互相独立的状态，接下来需要把他们绑定在一起。这个过程就叫 fix-ups 。
+
+由于存在代码签名，因此不能改变指令。
+
+问题：如果不能改变 dylib 的调用指令，那么一个 dylib 如何调用到另一个 dylib 呢?
+
+其实这里又添加了一个*间接层(indirection)* ，被称作**位置无关代码 (position independent code)** 。
+
+> 位置无关代码是指可在主存储器中**任意位置**正确地运行，而不受其**绝对地址**影响的一种机器码。PIC 广泛使用于**共享库**，使得同一个库中的代码能够被加载到**不同进程**的地址空间中。（[来源：维基百科](https://zh.wikipedia.org/wiki/%E5%9C%B0%E5%9D%80%E6%97%A0%E5%85%B3%E4%BB%A3%E7%A0%81)）
+
+具体的做法是在 `__DATA` 段创建了一个指针，这个指针指向需要被调用的方法，所以 dyld 要做的是修正这个指针和数据。
+
+#### Rebasing & Binding
+
+![dyld-2-Fix-ups-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Fix-ups-2.jpeg)
+
+Fix-ups 有两类：rebasing 和 binding 。
+
+- **Rebasing**: 修正指向当前 `Mach-O` 文件内的指针；
+- **Binding**: 修正指向当前 `Mach-O` 文件外的指针。
+
+如果你好奇的话，有一个名为 `dyldinfo` 的命令，它有一些可选项参数。你可以在任何 `Mach-O` 文件上运行它，你会看到 dyld 必须为该 `Mach-O` 文件做的所有修改：
+
+```console
+xcrun dyldinfo -rebase -bind -lazy_bind myapp.app/myapp
+```
+
+![dyld-2-Fix-ups-3.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Fix-ups-3.jpeg)
 
 ## Reference
 
