@@ -39,7 +39,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [1. 递归地加载所有依赖的 dylib](#1-递归地加载所有依赖的-dylib)
   - [2. Fix-ups](#2-fix-ups)
     - [位置无关代码](#位置无关代码)
-    - [Rebasing & Binding](#rebasing--binding)
+    - [Rebase & Bind](#rebase--bind)
 - [Reference](#reference)
 
 ## 前言
@@ -338,14 +338,14 @@ APP 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而他们可能�
 
 具体的做法是在 `__DATA` 段创建了一个指针，这个指针指向需要被调用的方法，所以 dyld 要做的是修正这个指针和数据。
 
-#### Rebasing & Binding
+#### Rebase & Bind
 
 ![dyld-2-Fix-ups-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Fix-ups-2.jpeg)
 
-Fix-ups 有两类：rebasing 和 binding 。
+Fix-ups 有两类：rebase 和 bind 。
 
-- **Rebasing**: 修正指向当前 `Mach-O` 文件内的指针；
-- **Binding**: 修正指向当前 `Mach-O` 文件外的指针。
+- **Rebase**: 修正指向当前 `Mach-O` 文件内的指针；
+- **Bind**: 修正指向当前 `Mach-O` 文件外的指针。
 
 如果你好奇的话，有一个名为 `dyldinfo` 的命令，它有一些可选项参数。你可以在任何 `Mach-O` 文件上运行它，你会看到 dyld 必须为该 `Mach-O` 文件做的所有修改：
 
@@ -354,6 +354,12 @@ xcrun dyldinfo -rebase -bind -lazy_bind myapp.app/myapp
 ```
 
 ![dyld-2-Fix-ups-3.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-Fix-ups-3.jpeg)
+
+从图中可看到有 3 类信息：
+
+- **rebase** information
+- **bind** information
+- **lazy binding** information
 
 ## Reference
 
