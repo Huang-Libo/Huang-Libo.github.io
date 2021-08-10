@@ -40,6 +40,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [2. Fix-ups](#2-fix-ups)
     - [位置无关代码](#位置无关代码)
     - [Rebase & Bind](#rebase--bind)
+  - [2.1 Rebase](#21-rebase)
 - [Reference](#reference)
 
 ## 前言
@@ -360,6 +361,18 @@ xcrun dyldinfo -rebase -bind -lazy_bind myapp.app/myapp
 - **rebase** information
 - **bind** information
 - **lazy binding** information
+
+### 2.1 Rebase
+
+![dyld-2-rebase.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-rebase.jpeg)
+
+由于使用了 `ASLR` 技术，`Mach-O` 文件会被加载到一个随机地址，因此所有的*内部指针 (interior pointer)* 都需要加上偏移量。
+
+这些指针存在哪呢？这些指针被编码在 `__LINKEDIT` 段里面。（具体点？）
+
+在做 rebase 的时候，会在所有的 `__DATA` *页*中的触发**缺页**（因为应用的 `Mach-O` 文件对应的*页*还未加载到*物理内存*），并且由于需要写入数据，还会触发**写时复制**。
+
+这些 `IO` 导致 rebase 很耗时。但由于 dyld 是按顺序执行的 rebase ，从内核的角度来看，**缺页**也是按顺序发生的，因此内核会提前读取后面的页，这使 `IO` 成本有所降低。
 
 ## Reference
 
