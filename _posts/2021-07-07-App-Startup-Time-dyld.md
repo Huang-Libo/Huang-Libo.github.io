@@ -60,7 +60,7 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld2, dyld3]
     - [1. dyld 2 执行惰性的符号解析 (Lazy symbol resolution)](#1-dyld-2-执行惰性的符号解析-lazy-symbol-resolution)
     - [2. dyld 3 执行急切的符号解析 (Eager symbol resolution)](#2-dyld-3-执行急切的符号解析-eager-symbol-resolution)
     - [3. dyld 3 对符号缺失的兼容](#3-dyld-3-对符号缺失的兼容)
-    - [4. Linker Flag: _bind_at_load](#4-linker-flag-_bind_at_load)
+    - [4. Linker Flag: -bind_at_load](#4-linker-flag--bind_at_load)
   - [dlopen() / dlsym() / dladdr()](#dlopen--dlsym--dladdr)
   - [dlclose()](#dlclose)
   - [all_image_infos](#all_image_infos)
@@ -443,13 +443,13 @@ _dyld 2 与 dyld 3 执行流程的对比_
 
 需要注意的是，这是当前 `dyld 3` 的兼容行为，未来可能会强制所有的符号解析在前面执行。也就是说，启动时如果缺失符号就会 crash ，这使得开发者能在开发时就发现代码的问题。
 
-#### 4. Linker Flag: _bind_at_load
+#### 4. Linker Flag: -bind_at_load
 
 ![dyld-3-eager-symbol-resolution-2.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-3-eager-symbol-resolution-2.jpeg)
 
-在使用 `dyld 2` 的系统上，可以在 **Other Linker Flags** 中添加 `_bind_at_load` 参数，可以强制 `dyld 2` 在启动时加载所有符号，这样可以提前发现问题，为 `dyld 3` 的到来做好准备。
+在使用 `dyld 2` 的系统上，可以在 **Other Linker Flags** 中添加 `-bind_at_load` 参数，可以强制 `dyld 2` 在启动时加载所有符号，这样可以提前发现问题，为 `dyld 3` 的到来做好准备。
 
-要注意的是，由于 `_bind_at_load` 会导致启动很慢，因此只能在 Debug build 中使用，不要在 Release build 中使用。
+要注意的是，由于 `-bind_at_load` 会导致启动很慢，因此只能在 Debug build 中使用，不要在 Release build 中使用。
 
 ### dlopen() / dlsym() / dladdr()
 
