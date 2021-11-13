@@ -1,7 +1,7 @@
 ---
-title: "[WIP]【WWDC16】优化 APP 启动（基于 dyld 2）"
+title: "[WIP]【WWDC16】优化 App 启动（基于 dyld 2）"
 categories: [攻城狮, WWDC]
-tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dyld 2]
+tags: [WWDC16, iOS, App 性能优化, App 启动优化, Mach-O, 虚拟内存, dyld 2]
 ---
 
 ![cover.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/cover.jpeg){: .normal width="600"}
@@ -20,7 +20,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
   - [Mach-O Univeral Files](#mach-o-univeral-files)
 - [虚拟内存简介](#虚拟内存简介)
   - [间接层](#间接层)
-  - [1. 缺页](#1-缺页)
+  - [1. 缺页中断](#1-缺页中断)
   - [2. 多个进程共享物理内存](#2-多个进程共享物理内存)
   - [3. File backed mapping](#3-file-backed-mapping)
   - [4. 写时复制 (copy on write)](#4-写时复制-copy-on-write)
@@ -33,7 +33,7 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
     - [1. 地址空间布局随机化](#1-地址空间布局随机化)
     - [2. 代码签名](#2-代码签名)
 - [内核的工作](#内核的工作)
-  - [1. 把 APP 载入进程中](#1-把-app-载入进程中)
+  - [1. 把 App 映射到进程中](#1-把-app-映射到进程中)
   - [2. 把 dyld 载入进程中](#2-把-dyld-载入进程中)
 - [dyld 的执行步骤](#dyld-的执行步骤)
   - [1. 递归地加载所有依赖的 dylib](#1-递归地加载所有依赖的-dylib)
@@ -55,8 +55,8 @@ tags: [WWDC16, iOS, APP 性能优化, APP 启动优化, Mach-O, 虚拟内存, dy
 
 Apple 的市场团队做了一些调查，结果显示这 3 个群体将在此 session 中有所收获：
 
-- 当前开发的 APP 启动太慢
-- 不想成为前一类人（想让 APP 保持快速启动）
+- 当前开发的 App 启动太慢
+- 不想成为前一类人（想让 App 保持快速启动）
 - 想了解系统的运作方式
 
 ### 2. 内容提要
@@ -78,7 +78,7 @@ Apple 的市场团队做了一些调查，结果显示这 3 个群体将在此 s
 
 `Mach-O` 是 **Mach O**bject 文件格式的缩写，它包含一系列文件类型：
 
-- **Executable**: APP 或 APP Extension 中主要的二进制文件
+- **Executable**: App 或 App Extension 中主要的二进制文件
 - **Dylib**: 动态库（aka `DSO` 或 `DLL`）
 - **Bundle**: 无法被链接的特殊的 dylib ，只能用 `dlopen()` 打开，比如 macOS 上使用的 plug-ins 。
 
@@ -155,9 +155,9 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 这种设计提供了很多机会。下面介绍虚拟内存一些的特性。
 
-### 1. 缺页
+### 1. 缺页中断
 
-如果**某进程**内的一个*逻辑地址*没有映射到*物理内存* ，当这个进程访问该逻辑地址时，就会发生一次 **缺页 (page fault)** 。此时，内核将停止这个进程，并试图找出需要发生什么。
+如果**某进程**内的一个*逻辑地址*没有映射到*物理内存* ，当这个进程访问该*逻辑地址*时，就会发生一次 **缺页中断 (page fault)** 。此时，内核将停止这个进程，并试图找出需要发生什么。
 
 ### 2. 多个进程共享物理内存
 
@@ -190,7 +190,7 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ### 6. 页的权限
 
-可以对 `Mach-O` 文件的*每个页*设置访问权限。权限可以是 r、w、x 的任意组合。
+可以对 `Mach-O` 文件的*每个页*设置访问权限。权限可以是 `r` 、`w` 、`x` 的任意组合。
 
 ## Mach-O 文件加载到虚拟内存
 
@@ -208,11 +208,11 @@ section 是编译器忽略的东西，它们只是 segment 的子区域。它们
 
 ![Mach-O-Image-Loading-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-2.jpeg)
 
-dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header`，此时 `Mach-O header` 还没有加载到物理内存中，因此会发生一次缺页异常。然后，内核将读取 `Mach-O` 文件的第一页并置于物理内存中，再设置好*虚拟内存*到*物理内存*的映射。
+dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header`，此时 `Mach-O header` 还没有加载到物理内存中，因此会发生一次 *page fault* 。然后，内核将读取 `Mach-O` 文件的第一页并置于物理内存中，再设置好*虚拟内存*到*物理内存*的映射。
 
 ![Mach-O-Image-Loading-3.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-3.jpeg)
 
-现在，dyld 就可以开始读取 `Mach-O header` 了。`Mach-O header` 会告知 dyld 需要去 `__LINKEDIT` *页*中读取一些信息，此时，会再发生一次缺页异常。同样，内核会将 `__LINKEDIT` 读入物理内存并设置好映射。
+现在，dyld 就可以开始读取 `Mach-O header` 了。`Mach-O header` 会告知 dyld 需要去 `__LINKEDIT` *页*中读取一些信息，此时，会再发生一次 *page fault* 。同样，内核会将 `__LINKEDIT` 读入物理内存并设置好映射。
 
 ![Mach-O-Image-Loading-4.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Mach-O-Image-Loading-4.jpeg)
 
@@ -269,13 +269,13 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ## 内核的工作
 
-### 1. 把 APP 载入进程中
+### 1. 把 App 映射到进程中
 
 ![Kernel-Loads-APP.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/Kernel-Loads-APP.jpeg){: .normal width="600"}
 
 `exec()` 是一个*系统调用 (system call)* 。在陷入内核空间后，告诉内核想用这个新程序替换某个进程，内核就会删除该进程的整个地址空间，并映射用户指定的可执行文件到这个进程。
 
-由于使用了 `ASLR`，dyld 会把 APP 映射到一个随机地址，然后把从 0 到这个随机地址的区域标识为*不可访问 (inaccessible)* ，也就是*不可读、不可写、不可执行*。这块区域的大小在不同平台上不一样：
+由于使用了 `ASLR`，dyld 会把 App 映射到一个（虚拟内存的）随机地址，然后把从 `0` 到这个随机地址的区域标识为*不可访问 (inaccessible)* ，也就是*不可读、不可写、不可执行*。这块区域的大小在不同平台上不一样：
 
 - 在 32 位的系统上至少是 **4KB** ；
 - 在 64 位的系统上至少是 **4GB** 。
@@ -297,7 +297,7 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 他们很快意识到，动态库的加载很快就变得非常复杂，而系统内核的开发者不希望让内核来做这些工作，所以就创建了一个辅助程序。在 Apple 的平台中，这个辅助程序被称为 **dyld** ，在其他 Unix 上被称作 **LD.SO** 。
 
-因此，当内核把 APP 映射到进程后，内核会把另一个叫 dyld 的 `Mach-O` 映射到这个进程的另一个随机地址中。然后，将 `PC` 设置给 dyld ，让 dyld 来完成这个进程的启动。
+因此，当内核把 App 映射到进程后，内核会把另一个叫 dyld 的 `Mach-O` 映射到这个进程的另一个随机地址中。然后，将 `PC` 设置给 dyld ，让 dyld 来完成这个进程的启动。
 
 ## dyld 的执行步骤
 
@@ -309,7 +309,7 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ![dyld-2-load-dylibs-1.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-1.jpeg)
 
-首先，内核已经把 APP 加载到进程的虚拟内存中，dyld 会读取 APP 的 `Mach-O Header` 中的 dylib 依赖列表，然后 dyld 再去查找每一个 dylib 。
+首先，内核已经把 App 加载到进程的虚拟内存中，dyld 会读取 App 的 `Mach-O Header` 中的 dylib 依赖列表，然后 dyld 再去查找每一个 dylib 。
 
 每当找到一个 dylib ，dyld 会将其打开并查看文件的开头部分，以确定它是一个 `Mach-O` 文件，**验证它、查找它的代码签名、然后将代码签名注册到内核中**。
 
@@ -317,9 +317,9 @@ dyld 要做的第一件事是在进程中、物理内存中查看 `Mach-O header
 
 ![dyld-2-load-dylibs-2.jpeg](/images/WWDC/2016/406-optimizing-app-startup-time/dyld-2-load-dylibs-2.jpeg)
 
-APP 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而他们可能又依赖了其他 dylib ，因此 dyld 会递归地执行这项任务，直到所有依赖的 dylib 都加载完成。
+App 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而它们可能又依赖了其他 dylib ，因此 dyld 会递归地执行这项任务，直到所有依赖的 dylib 都加载完成。
 
-平均而言，Apple 系统上的 APP 需要加载 1~400 个 dylib ，所以要加载的 dylib 非常多。幸运的是，它们大部分是系统的 dylib ，Apple 对它们做了大量优化，在构建/升级系统时，会*预计算*和*预缓存*大量工作，以加快 dylib 的加载速度。因此系统的 dylib 加载非常快。
+平均而言，Apple 系统上的 App 需要加载 1~400 个 dylib ，所以要加载的 dylib 非常多。幸运的是，它们大部分是系统的 dylib ，Apple 对它们做了大量优化，在构建/升级系统时，会*预计算*和*预缓存*大量工作，以加快 dylib 的加载速度。因此系统的 dylib 加载非常快。
 
 ### 2. Fix-ups
 
@@ -327,7 +327,7 @@ APP 依赖的 dylib 可能依赖了 `A.dylib` 和 `B.dylib` ，而他们可能�
 
 #### 位置无关代码
 
-现在 APP 依赖的 dylib 都加载了，但是它们还处于互相独立的状态，接下来需要把他们绑定在一起。这个过程就叫 fix-ups 。
+现在 App 依赖的 dylib 都加载了，但是它们还处于互相独立的状态，接下来需要把他们绑定在一起。这个过程就叫 fix-ups 。
 
 由于存在代码签名，因此不能改变指令。
 
