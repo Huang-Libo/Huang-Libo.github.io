@@ -25,25 +25,31 @@ tags: [macOS]
 - 重启电脑，按 cmd + R 进入恢复模式（不要使用外接键盘）。
 - 打开终端，输入：
 
-```
+```console
 csrutil enable --without debug --without fs
 ```
 
 重启：
 
-```
+```console
 reboot
 ```
 
 ## 步骤二：下载 forceFullDesktopBar
 
-```
+【2021/11/23】更新（目前已支持 ARM 版的 Mac ，*macOS 12.0* 系统也支持）：
+
+**说明**：**不**要 clone ，否则还得自己编译。建议直接下载[作者编译好的版本](https://github.com/briankendall/forceFullDesktopBar/releases)。ß
+
+如果想自己编译可先 clone ：
+
+```console
 git clone git@github.com:briankendall/forceFullDesktopBar.git
 ```
 
 进入到 `forceFullDesktopBar/install` 目录，然后安装：
 
-```
+```console
 sudo ./install.sh
 ```
 
