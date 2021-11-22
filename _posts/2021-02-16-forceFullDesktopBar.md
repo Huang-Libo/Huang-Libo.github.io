@@ -16,7 +16,7 @@ tags: [macOS]
 
 仓库地址：[https://github.com/briankendall/forceFullDesktopBar](https://github.com/briankendall/forceFullDesktopBar)  
 
-说明：暂不支持 arm64（即 M1 芯片）的机器。原因请看仓库介绍。
+~~说明：暂不支持 arm64（即 M1 芯片）的机器。原因请看仓库介绍。~~（现在已支持）
 
 ## 步骤一：先关闭 System Integrity Protection 的部分模块
 
