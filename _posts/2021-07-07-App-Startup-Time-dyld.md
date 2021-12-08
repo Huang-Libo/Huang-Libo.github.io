@@ -65,6 +65,8 @@ tags: [WWDC17, iOS, APP 性能优化, APP 启动优化, dyld2, dyld3]
   - [dlclose()](#dlclose)
   - [all_image_infos](#all_image_infos)
   - [最佳实践](#最佳实践)
+- [应用场景](#应用场景)
+  - [Prepare Your App for Prewarming](#prepare-your-app-for-prewarming)
 - [Reference](#reference)
 
 ## 前言
@@ -466,6 +468,15 @@ _dyld 2 与 dyld 3 执行流程的对比_
 ### 最佳实践
 
 ![dyld-best-practices.jpeg](/images/WWDC/2017/413-App-Startup-Time-dyld/dyld-best-practices.jpeg)
+
+## 应用场景
+
+### Prepare Your App for Prewarming
+
+- [Solving Mysterious Logout Issues on iOS 15](https://sourcediving.com/solving-mysterious-logout-issues-on-ios-15-8b818c089466)
+- Apple Document
+  - [About the App Launch Sequence](https://developer.apple.com/documentation/uikit/app_and_environment/responding_to_the_launch_of_your_app/about_the_app_launch_sequence#3894431)
+  - [MetricKit](https://developer.apple.com/documentation/metrickit)
 
 ## Reference
 
