@@ -175,13 +175,13 @@ https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-e
 
 执行 `bundle exec jekyll s` 报错 `bind: Address already in us`e ：
 
-```
+```plaintext
 $HOME/.rvm/rubies/ruby-2.7.2/lib/ruby/2.7.0/socket.rb:201:in `bind': Address already in use - bind(2) for 127.0.0.1:4000 (Errno::EADDRINUSE)
 ```
 
 查看端口占用：
 
-```
+```bash
 ❯ lsof -i :4000
 COMMAND  PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
 ruby    5139    username   10u  IPv4 0x4c290c34da381ff3      0t0  TCP localhost:terabase (LISTEN)
@@ -189,7 +189,7 @@ ruby    5139    username   10u  IPv4 0x4c290c34da381ff3      0t0  TCP localhost:
 
 杀掉相关线程：
 
-```
+```bash
 kill 5139
 ```
 
@@ -208,7 +208,7 @@ kill 5139
 
 当前站点源文件的路径为：  
 
-```
+```plaintext
 ~/Library/Mobile Documents/iCloud~com~coderforart~iOS~MWeb/Documents/Huang-Libo.github.io
 ```
 
@@ -232,7 +232,7 @@ gem 'http_parser.rb', git: "git@github.com:tmm1/http_parser.rb.git"
 
 这个改动只能在本地 `bundle install` 时使用，不要提交到 GitHub，否则会构建失败（可能是不支持这种集成方式）：  
 
-![](images/GitHub/http_parser-github-runner-error.png) 
+![](images/GitHub/http_parser-github-runner-error.png)
 
 ## 修改 RubyGems 源
 
@@ -250,9 +250,8 @@ gem 'http_parser.rb', git: "git@github.com:tmm1/http_parser.rb.git"
 
 配置 bundler 镜像的语法规则：  
 
-```
+```bash
 bundle config mirror.https://rubygems.org https://<rubygems-mirror.org>
-
 ```
 
 bundler 镜像配置的官方文档： http://bundler.io/v1.16/man/bundle-config.1.html#MIRRORS-OF-GEM-SOURCES  
@@ -261,7 +260,7 @@ bundler 镜像配置的官方文档： http://bundler.io/v1.16/man/bundle-config
 
 如果 `bundle install` 时不想使用 `sudo`，可指定 **local path**：  
 
-```
+```bash
 bundle config set --local path 'vendor/bundle'
 ```
 
@@ -297,7 +296,7 @@ In Gemfile:
 
 前一天晚上在家里的 Mac 上写了点笔记，第二天用公司的 Mac 继续写，执行 `bundle exec jekyll server` 时报错：  
 
-```
+```plaintext
 Traceback (most recent call last):
 	17: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `<main>'
 	16: from $HOME/.rvm/gems/ruby-2.6.5/bin/ruby_executable_hooks:22:in `eval'
@@ -383,7 +382,7 @@ BUNDLED WITH
 
 笔者就在家里的 *Mac* 上遇到过 `gem sources --add` 失败的问题：
 
-```
+```plaintext
 Unable to download data from https://rubygems.org/ - no such name (https://rubygems.org/specs.4.8.gz
 ```
 
@@ -402,13 +401,13 @@ Unable to download data from https://rubygems.org/ - no such name (https://rubyg
 
 安装 rvm ：  
 
-```
+```bash
 \curl -sSL https://get.rvm.io | bash -s stable --ruby
 ```
 
 更新 rvm ：  
 
-```
+```bash
 rvm get stable
 ```
 
@@ -416,44 +415,44 @@ rvm get stable
 
 查看本机已安装的版本：  
 
-```
+```bash
 rvm list
 ```
 
 查看云端所有的版本：  
 
-```
-rvm list know
+```bash
+rvm list known
 ```
 
 安装指定的版本，如果存在二进制版本，则会直接安装二进制版本；若不存在，则会下载源码，本机编译安装：  
 
-```
+```bash
 rvm install 2.7.3
 ```
 
 指定只从源码编译安装：  
 
-```
+```bash
 # 忽略二进制，否则可能会请求 rubies.travis-ci.org
 rvm install 2.7.3 --disable-binary
 ```
 
 切换版本：  
 
-```
+```bash
 rvm use 2.7.2
 ```
 
 切换版本并设置成 default：  
 
-```
+```bash
 rvm use 2.7.2 --default
 ```
 
 使用系统 ruby ：
 
-```
+```bash
 rvm use system --default
 ```
 
@@ -463,7 +462,7 @@ rvm use system --default
 
 之前为了尝试解决一个奇怪的问题，修改了 *host* ，然后后来忘了改回来，导致了 *ssl error* 。在 `/etc/hosts` 中把相关项移除就可以了：    
 
-```
+```bash
 151.101.192.70  rubygems.org
 ```
 
@@ -471,7 +470,7 @@ rvm use system --default
 
 执行 `gem update --system` 报错：  
 
-```
+```bash
 ~
 ❯ 
 Updating rubygems-update
@@ -480,20 +479,20 @@ ERROR:  While executing gem ... (Gem::RemoteFetcher::FetchError)
     SSL_connect returned=1 errno=0 state=SSLv3 read server certificate B: certificate verify failed (certificate rejected) (https://rubygems.org/api/v1/dependencies?gems=rubygems-update)
 ```
 
-查阅相关文档：    
+查阅相关文档：
 
 - https://guides.rubygems.org/ssl-certificate-update/
 - https://bundler.io/v2.0/guides/rubygems_tls_ssl_troubleshooting_guide.html#troubleshooting-certificate-errors
 
 有个脚本，可执行检测连接和证书有效性：  
 
-```
+```bash
 curl -Lks 'https://git.io/rg-ssl' | ruby
 ```
 
 输出：  
 
-```
+```plaintext
 Here's your Ruby and OpenSSL environment:
 
 Ruby:           2.6.3p62 (2019-04-16 revision 67580) [universal.x86_64-darwin20]
